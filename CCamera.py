@@ -34,39 +34,20 @@ def visualizer(rgb,Depth,hasrun=[]):
 
 im_rgbd = rs.capture_frame(True, True)  # wait for frames and align them
 cam = o3d.camera.PinholeCameraIntrinsic()
-#cam.intrinsic_matrix=(  [231.7225,0,161.8237],[0,229.9110,80.4734],[0,0,1.0000])
-
-#intrinsic = o3d.camera.PinholeCameraIntrinsic(540, 960, 231.7225, 229.9110, 161.8237, 80.4734)
-#print("intrinics type",type(intrinsic)," data im:",type(im_rgbd.to_legeacy))
 intrinsic=(o3d.cpu.pybind.core.Tensor(np.array([[231.7225,0,161.8237],[0,229.9110,80.4734],[0,0,1.0000]])))
-
 pcd = o3d.t.geometry.PointCloud.create_from_rgbd_image(im_rgbd,intrinsic)
-#print(type(im_rgbd))
 pcd.transform([[-1, 0, 0, 0], [0, -1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
 
 
-#o3d.visualization.draw_geometries([pcd])
-#o3d.visualization.draw([pcd])
-#print(type(o3d.t.geometry.PointCloud.from_legacy_pointcloud(pcd)))
-
-
-
-
-
-while True:
-
-    im_rgbd = rs.capture_frame(True, True)  # wait for frames and align them
-    pcd = o3d.t.geometry.PointCloud.create_from_rgbd_image(im_rgbd,intrinsic)
-    pcd=o3d.t.geometry.PointCloud.to_legacy(pcd)
-    voxel_down_pcd = pcd.voxel_down_sample(voxel_size=0.02)
-
+def Segmentation(pcl,intrinsicMatrix):
+    PCD = o3d.t.geometry.PointCloud.create_from_rgbd_image(pcl,intrinsic)
+    PCD=o3d.t.geometry.PointCloud.to_legacy(PCD)
+    voxel_down_pcd = PCD.voxel_down_sample(voxel_size=0.02)
     voxel_down_pcd.remove_radius_outlier(nb_points=16, radius=0.05)
     
     plane_model, inliers = voxel_down_pcd.segment_plane(distance_threshold=0.01,
                                          ransac_n=3,
                                          num_iterations=1000)       
-    # Features from each object 
-    #visualizer(im_rgbd.depth,im_rgbd.color)
     inlier_cloud = voxel_down_pcd.select_by_index(inliers)
     inlier_cloud.paint_uniform_color([1.0, 0, 0])
     outlier_cloud = voxel_down_pcd.select_by_index(inliers, invert=True)
@@ -76,6 +57,10 @@ while True:
                                     lookat=[2.1813, 2.0619, 2.0999],
                                     up=[0.1204, -0.9852, 0.1215])
 
+while True:
+
+    im_rgbd = rs.capture_frame(True, True)  # wait for frames and align them
+    Segmentation(im_rgbd,intrinsic)
                                          
     # Features from each object 
     #visualizer(im_rgbd.depth,im_rgbd.color)
