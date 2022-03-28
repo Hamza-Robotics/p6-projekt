@@ -58,14 +58,18 @@ while True:
     im_rgbd = rs.capture_frame(True, True)  # wait for frames and align them
     pcd = o3d.t.geometry.PointCloud.create_from_rgbd_image(im_rgbd,intrinsic)
     pcd=o3d.t.geometry.PointCloud.to_legacy(pcd)
-    plane_model, inliers = pcd.segment_plane(distance_threshold=0.01,
+    voxel_down_pcd = pcd.voxel_down_sample(voxel_size=0.02)
+
+    voxel_down_pcd.remove_radius_outlier(nb_points=16, radius=0.05)
+    
+    plane_model, inliers = voxel_down_pcd.segment_plane(distance_threshold=0.01,
                                          ransac_n=3,
                                          num_iterations=1000)       
     # Features from each object 
     #visualizer(im_rgbd.depth,im_rgbd.color)
-    inlier_cloud = pcd.select_by_index(inliers)
+    inlier_cloud = voxel_down_pcd.select_by_index(inliers)
     inlier_cloud.paint_uniform_color([1.0, 0, 0])
-    outlier_cloud = pcd.select_by_index(inliers, invert=True)
+    outlier_cloud = voxel_down_pcd.select_by_index(inliers, invert=True)
     o3d.visualization.draw_geometries([inlier_cloud, outlier_cloud],
                                     zoom=0.8,
                                     front=[-0.4999, -0.1659, -0.8499],
