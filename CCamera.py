@@ -53,42 +53,46 @@ def DefinePointCloud(img,Voxel_Choise,intrinsicMatrix):
         return PCL
 
 def Segmentation(pcl):
-    plane_model, inliers = pcl.segment_plane(distance_threshold=0.01,
+    plane_model, inliers = pcl.segment_plane(distance_threshold=0.30,
                                          ransac_n=3,
-                                         num_iterations=1000)       
+                                         num_iterations=2000)       
     inlier_cloud = pcl.select_by_index(inliers)
     inlier_cloud.paint_uniform_color([1.0, 0, 0])
     outlier_cloud = pcl.select_by_index(inliers, invert=True)
 
     return inlier_cloud,outlier_cloud
 
-while True:
-
-    im_rgbd = rs.capture_frame(True, True)  # wait for frames and align them
-    PCL=DefinePointCloud(im_rgbd,True,intrinsic)
-    inc,outc= Segmentation(PCL)
-
+def Clustering(pcl,eps,min_points):
     labels = np.array(
-        PCL.cluster_dbscan(eps=0.06, min_points=50, print_progress=True))
+    pcl.cluster_dbscan(eps, min_points,True))
 
     max_label = labels.max()
     colors = plt.get_cmap("tab20")(labels / (max_label if max_label > 0 else 1))
     colors[labels < 0] = 0
-    PCL.colors = o3d.utility.Vector3dVector(colors[:, :3])
+    pcl.colors = o3d.utility.Vector3dVector(colors[:, :3])
     print(f"point cloud has {max_label + 1} clusters")
 
-    o3d.visualization.draw_geometries([PCL],
-                                zoom=0.8,
-                                front=[-0.4999, -0.1659, -0.8499],
-                                lookat=[2.1813, 2.0619, 2.0999],
-                                up=[0.1204, -0.9852, 0.1215])
-                                         
-    # Features from each object 
-    #visualizer(im_rgbd.depth,im_rgbd.color)
 
-    if msvcrt.kbhit():
-        if msvcrt.getwche() == 'c':
-            break
+
+im_rgbd = rs.capture_frame(True, True)  # wait for frames and align them
+PCL=DefinePointCloud(im_rgbd,True,intrinsic)
+inc,PCL= Segmentation(PCL)
+Clustering(PCL,eps=0.1, min_points=100)
+
+
+o3d.visualization.draw_geometries([PCL],
+                            zoom=0.5,
+                            front=[-0.4999, -0.1659, -0.8499],
+                            lookat=[2.1813, 2.0619, 2.0999],
+                            up=[0.1204, -0.9852, 0.1215])
+                                        
+# Features from each object 
+#visualizer(im_rgbd.depth,im_rgbd.color)
+
+
+#if msvcrt.kbhit():
+#    if msvcrt.getwche() == 'c':
+     #   break
 
 
 
