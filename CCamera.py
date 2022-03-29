@@ -1,3 +1,4 @@
+from ctypes.wintypes import PLCID
 import json
 import numpy as np
 import open3d as o3d
@@ -67,7 +68,16 @@ while True:
     PCL=DefinePointCloud(im_rgbd,True,intrinsic)
     inc,outc= Segmentation(PCL)
 
-    o3d.visualization.draw_geometries([outc],
+    labels = np.array(
+        PCL.cluster_dbscan(eps=0.06, min_points=50, print_progress=True))
+
+    max_label = labels.max()
+    colors = plt.get_cmap("tab20")(labels / (max_label if max_label > 0 else 1))
+    colors[labels < 0] = 0
+    PCL.colors = o3d.utility.Vector3dVector(colors[:, :3])
+    print(f"point cloud has {max_label + 1} clusters")
+
+    o3d.visualization.draw_geometries([PCL],
                                 zoom=0.8,
                                 front=[-0.4999, -0.1659, -0.8499],
                                 lookat=[2.1813, 2.0619, 2.0999],
