@@ -4,6 +4,8 @@ import open3d as o3d
 import matplotlib.pyplot as plt
 import msvcrt
 
+from tomlkit import inline_table
+
 
 with open("CameraSetup.json") as cf:
     rs_cfg = o3d.t.io.RealSenseSensorConfig(json.load(cf))
@@ -38,29 +40,38 @@ intrinsic=(o3d.cpu.pybind.core.Tensor(np.array([[231.7225,0,161.8237],[0,229.911
 pcd = o3d.t.geometry.PointCloud.create_from_rgbd_image(im_rgbd,intrinsic)
 pcd.transform([[-1, 0, 0, 0], [0, -1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
 
+def DefinePointCloud(img,Voxel_Choise,intrinsicMatrix):
+    PCL = o3d.t.geometry.PointCloud.create_from_rgbd_image(img,intrinsic)
+    PCL=o3d.t.geometry.PointCloud.to_legacy(PCL)
+    if Voxel_Choise==True:
+        voxel_down_pcd = PCL.voxel_down_sample(voxel_size=0.02)
+        voxel_down_pcd.remove_radius_outlier(nb_points=16, radius=0.05)
+        return voxel_down_pcd
 
-def Segmentation(pcl,intrinsicMatrix):
-    PCD = o3d.t.geometry.PointCloud.create_from_rgbd_image(pcl,intrinsic)
-    PCD=o3d.t.geometry.PointCloud.to_legacy(PCD)
-    voxel_down_pcd = PCD.voxel_down_sample(voxel_size=0.02)
-    voxel_down_pcd.remove_radius_outlier(nb_points=16, radius=0.05)
-    
-    plane_model, inliers = voxel_down_pcd.segment_plane(distance_threshold=0.01,
+    else: 
+        return PCL
+
+def Segmentation(pcl):
+    plane_model, inliers = pcl.segment_plane(distance_threshold=0.01,
                                          ransac_n=3,
                                          num_iterations=1000)       
-    inlier_cloud = voxel_down_pcd.select_by_index(inliers)
+    inlier_cloud = pcl.select_by_index(inliers)
     inlier_cloud.paint_uniform_color([1.0, 0, 0])
-    outlier_cloud = voxel_down_pcd.select_by_index(inliers, invert=True)
-    o3d.visualization.draw_geometries([inlier_cloud, outlier_cloud],
-                                    zoom=0.8,
-                                    front=[-0.4999, -0.1659, -0.8499],
-                                    lookat=[2.1813, 2.0619, 2.0999],
-                                    up=[0.1204, -0.9852, 0.1215])
+    outlier_cloud = pcl.select_by_index(inliers, invert=True)
+
+    return inlier_cloud,outlier_cloud
 
 while True:
 
     im_rgbd = rs.capture_frame(True, True)  # wait for frames and align them
-    Segmentation(im_rgbd,intrinsic)
+    PCL=DefinePointCloud(im_rgbd,True,intrinsic)
+    inc,outc= Segmentation(PCL)
+
+    o3d.visualization.draw_geometries([outc],
+                                zoom=0.8,
+                                front=[-0.4999, -0.1659, -0.8499],
+                                lookat=[2.1813, 2.0619, 2.0999],
+                                up=[0.1204, -0.9852, 0.1215])
                                          
     # Features from each object 
     #visualizer(im_rgbd.depth,im_rgbd.color)
