@@ -77,21 +77,21 @@ def Clustering(pcl,eps,min_points):
 
     return Clus
 
-
+###Main loop
 
 im_rgbd = rs.capture_frame(True, True)  # wait for frames and align them
 PCL=DefinePointCloud(im_rgbd,True,intrinsic)
 inc,PCL= Segmentation(PCL)
 #eps lav en cirkel med radius af 30 cm hvis der er 425 obj i så er det en cluster. 
 Clus=Clustering(PCL,eps=0.2, min_points=202)
-obs=[]
-for i in range(len(Clus)):
-   # print(type(Clus[i]))
-   obs.append(Clus[i])
 
-o3d.visualization.draw_geometries(obs)
-#print(np.size(np.asarray(PCL.points)))                        
 # Features from each object 
+Clus[0].estimate_normals(o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*2, max_nn=30))
+fph=o3d.pipelines.registration.compute_fpfh_feature(Clus[0], o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*2, max_nn=50))
+o3d.visualization.draw_geometries(Clus)
+
+
+print(np.shape(fph.data))
 #visualizer(im_rgbd.depth,im_rgbd.color)
 
 
