@@ -1,5 +1,6 @@
 from ctypes.wintypes import PLCID
 import json
+from pickle import FALSE
 import numpy as np
 import open3d as o3d
 import matplotlib.pyplot as plt
@@ -63,29 +64,33 @@ def Segmentation(pcl):
     return inlier_cloud,outlier_cloud
 
 def Clustering(pcl,eps,min_points):
-    labels = np.array(
-    pcl.cluster_dbscan(eps, min_points,True))
-
+    labels = np.array(pcl.cluster_dbscan(eps, min_points,False))
+    #dbscan labeller alle point clouds. Man finder den point cloud med højeste label. En cluster er alle de points med samme label. 
     max_label = labels.max()
-    colors = plt.get_cmap("tab20")(labels / (max_label if max_label > 0 else 1))
-    colors[labels < 0] = 0
-    pcl.colors = o3d.utility.Vector3dVector(colors[:, :3])
-    print(f"point cloud has {max_label + 1} clusters")
+    Clus=[]
+
+
+    for i in range(max_label+1):
+        id=np.where(labels==i)[0]
+        pcl_i=pcl.select_by_index(id)
+        Clus.append(pcl_i)
+
+    return Clus
 
 
 
 im_rgbd = rs.capture_frame(True, True)  # wait for frames and align them
 PCL=DefinePointCloud(im_rgbd,True,intrinsic)
 inc,PCL= Segmentation(PCL)
-Clustering(PCL,eps=0.1, min_points=100)
+#eps lav en cirkel med radius af 30 cm hvis der er 425 obj i så er det en cluster. 
+Clus=Clustering(PCL,eps=0.2, min_points=202)
+obs=[]
+for i in range(len(Clus)):
+   # print(type(Clus[i]))
+   obs.append(Clus[i])
 
-
-o3d.visualization.draw_geometries([PCL],
-                            zoom=0.5,
-                            front=[-0.4999, -0.1659, -0.8499],
-                            lookat=[2.1813, 2.0619, 2.0999],
-                            up=[0.1204, -0.9852, 0.1215])
-                                        
+o3d.visualization.draw_geometries(obs)
+#print(np.size(np.asarray(PCL.points)))                        
 # Features from each object 
 #visualizer(im_rgbd.depth,im_rgbd.color)
 
