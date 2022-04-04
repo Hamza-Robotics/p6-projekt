@@ -4,7 +4,8 @@ pickle_file = 'C:\\Users\\SebBl\\source\\repos\\UnpickleMyDickle\\full_shape_val
 
 with open(pickle_file, 'rb') as f:
     data = pickle.load(f)
+print(data[0])
 y = 0
 for x in data[0]['full_shape']['coordinate']:
-    print((data[0]['full_shape']['coordinate'][y]))
+    #print((data[0]['full_shape']['coordinate'][y]))
     y+=1

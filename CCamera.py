@@ -86,8 +86,8 @@ inc,PCL= Segmentation(PCL)
 Clus=Clustering(PCL,eps=0.2, min_points=202)
 
 # Features from each object 
-Clus[0].estimate_normals(o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*2, max_nn=30))
-fph=o3d.pipelines.registration.compute_fpfh_feature(Clus[0], o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*2, max_nn=50))
+#Clus[0].estimate_normals(o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*2, max_nn=30))
+#fph=o3d.pipelines.registration.compute_fpfh_feature(Clus[0], o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*2, max_nn=50))
 o3d.visualization.draw_geometries(Clus)
 
 
