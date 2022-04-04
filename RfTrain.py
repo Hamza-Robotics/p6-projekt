@@ -1,14 +1,16 @@
 from sklearn.ensemble import RandomForestRegressor
 import time
+import numpy as np
 import pickle
 import os
 
-
+x = np.load('x_values.npy')
+y = np.load('y_values.npy')
 
 #[32..features]:
-X=[[0, 0], [1, 1]]
+X=x
 #[Grasp Affordance, Wrap Affordance...]
-Y=[1,2]
+Y=y
 Reg=RandomForestRegressor(n_estimators=100)
 
 Reg=Reg.fit(X,Y)
