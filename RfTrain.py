@@ -4,8 +4,8 @@ import numpy as np
 import pickle
 import os
 
-x = np.load('x_values.npy')
-y = np.load('y_values.npy')
+x = np.load('C:\\data_for_learning\\x_values.npy')
+y = np.load('C:\\data_for_learning\\y_values.npy')
 
 #[32..features]:
 X=x
@@ -19,7 +19,7 @@ print("done learning")
 #print(Reg.predict(X))
 
 #Pickle
-pickle_out = open("Regression.pickle","wb")
+pickle_out = open("C:\\data_for_learning\\Regression.pickle","wb")
 pickle.dump(Reg, pickle_out)
 pickle_out.close()
 

@@ -3,7 +3,7 @@ import open3d as o3d
 import numpy as np
 
 
-pickle_file = 'C:\\Users\\SebBl\\source\\repos\\UnpickleMyDickle\\full_shape_train_data.pkl' ### Write path for the full_shape_val_data.pkl file ###
+pickle_file = 'C:\\data_for_learning\\full_shape_train_data.pkl' ### Write path for the full_shape_val_data.pkl file ###
 
 with open(pickle_file, 'rb') as f:
     data = pickle.load(f)
@@ -43,7 +43,10 @@ for i in range(len(objectlist)):
         x.append(fph[k])
     #labels=[objectlist[i]['full_shape']['label']['grasp'], objectlist[i]['full_shape']['label']['wrap_grasp'], objectlist[i]['full_shape']['label']['contain']]
     #labels = np.reshape(labels,(np.shape(labels)[0],np.shape(labels)[1]))
-    labels=objectlist[i]['full_shape']['label']['grasp']
+    labels = []
+    for j in range(len(objectlist[i]['full_shape']['label']['grasp'])):
+        labels.append(max(objectlist[i]['full_shape']['label']['grasp'][j],objectlist[i]['full_shape']['label']['wrap_grasp'][j]))
+        #print(objectlist[i]['full_shape']['label']['grasp'][j], objectlist[i]['full_shape']['label']['wrap_grasp'][j], labels[j])
     #labels=np.asarray(labels).T
     #labels = np.reshape(labels,(np.shape(labels)[0]))
     for k in range(len(np.array(pcd.points))):
@@ -55,5 +58,6 @@ y=np.asarray(y)
 print(np.shape(y))
 print(np.shape(x))
 
-np.save('x_values.npy', x)
-np.save('y_values.npy', y)
+np.save('C:\\data_for_learning\\x_values.npy', x)
+np.save('C:\\data_for_learning\\y_values.npy', y)
+np.save
