@@ -3,7 +3,7 @@ import open3d as o3d
 import numpy as np
 
 
-pickle_file = 'C:\\Users\\SebBl\\source\\repos\\UnpickleMyDickle\\full_shape_val_data.pkl' ### Write path for the full_shape_val_data.pkl file ###
+pickle_file = 'C:\\Users\\SebBl\\source\\repos\\UnpickleMyDickle\\full_shape_train_data.pkl' ### Write path for the full_shape_val_data.pkl file ###
 
 with open(pickle_file, 'rb') as f:
     data = pickle.load(f)
@@ -38,13 +38,16 @@ for i in range(len(objectlist)):
     pcd.estimate_normals(o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*2, max_nn=5))
     fph=o3d.pipelines.registration.compute_fpfh_feature(pcd, o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*2, max_nn=10))
     fph = np.array(np.asarray(fph.data)).T
-    x.append(fph)
-    #for k in range(len(np.array(pcd.points))):
-    #    x.append(fph[k])
-    labels=[objectlist[i]['full_shape']['label']['grasp'], objectlist[i]['full_shape']['label']['wrap_grasp'], objectlist[i]['full_shape']['label']['contain']]
+    #x.append(fph)
+    for k in range(len(np.array(pcd.points))):
+        x.append(fph[k])
+    #labels=[objectlist[i]['full_shape']['label']['grasp'], objectlist[i]['full_shape']['label']['wrap_grasp'], objectlist[i]['full_shape']['label']['contain']]
+    #labels = np.reshape(labels,(np.shape(labels)[0],np.shape(labels)[1]))
     labels=objectlist[i]['full_shape']['label']['grasp']
-    labels = np.reshape(labels,(np.shape(labels)[0],np.shape(labels)[1]))
-    y.append(np.asarray(labels).T)
+    #labels=np.asarray(labels).T
+    #labels = np.reshape(labels,(np.shape(labels)[0]))
+    for k in range(len(np.array(pcd.points))):
+        y.append(labels[k])
 
 
 x=np.asarray(x)

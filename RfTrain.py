@@ -12,10 +12,11 @@ X=x
 #[Grasp Affordance, Wrap Affordance...]
 Y=y
 Reg=RandomForestRegressor(n_estimators=100)
-
+print("starting to learn")
 Reg=Reg.fit(X,Y)
+print("done learning")
 
-print(Reg.predict(X))
+#print(Reg.predict(X))
 
 #Pickle
 pickle_out = open("Regression.pickle","wb")
@@ -25,3 +26,5 @@ pickle_out.close()
 
 #FINISHED SOUND
 os.system('Murdar.mp3')
+
+print("done")
