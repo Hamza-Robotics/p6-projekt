@@ -38,9 +38,13 @@ def visualizer(rgb,Depth,hasrun=[]):
 
 im_rgbd = rs.capture_frame(True, True)  # wait for frames and align them
 cam = o3d.camera.PinholeCameraIntrinsic()
+print(o3d.io.read_pinhole_camera_intrinsic("real_sense_intrinsic").intrinsic_matrix)
+intrinsic=o3d.io.read_pinhole_camera_intrinsic("real_sense_intrinsic").intrinsic_matrix
 intrinsic=(o3d.cpu.pybind.core.Tensor(np.array([[231.7225,0,161.8237],[0,229.9110,80.4734],[0,0,1.0000]])))
 pcd = o3d.t.geometry.PointCloud.create_from_rgbd_image(im_rgbd,intrinsic)
 pcd.transform([[-1, 0, 0, 0], [0, -1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+o3d.visualization.draw_geometries([pcd])
+
 
 def DefinePointCloud(img,Voxel_Choise,intrinsicMatrix):
     PCL = o3d.t.geometry.PointCloud.create_from_rgbd_image(img,intrinsic)
@@ -54,7 +58,7 @@ def DefinePointCloud(img,Voxel_Choise,intrinsicMatrix):
         return PCL
 
 def Segmentation(pcl):
-    plane_model, inliers = pcl.segment_plane(distance_threshold=0.30,
+    plane_model, inliers = pcl.segment_plane(distance_threshold=0.20,
                                          ransac_n=3,
                                          num_iterations=2000)       
     inlier_cloud = pcl.select_by_index(inliers)
@@ -86,12 +90,12 @@ inc,PCL= Segmentation(PCL)
 Clus=Clustering(PCL,eps=0.2, min_points=202)
 
 # Features from each object 
+
 #Clus[0].estimate_normals(o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*2, max_nn=30))
 #fph=o3d.pipelines.registration.compute_fpfh_feature(Clus[0], o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*2, max_nn=50))
 o3d.visualization.draw_geometries(Clus)
 
 
-print(np.shape(fph.data))
 #visualizer(im_rgbd.depth,im_rgbd.color)
 
 

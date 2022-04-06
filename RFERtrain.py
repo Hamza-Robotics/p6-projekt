@@ -1,4 +1,4 @@
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import ExtraTreesRegressor
 import time
 import numpy as np
 import pickle
@@ -11,7 +11,7 @@ y = np.load('C:\\data_for_learning\\y_values.npy')
 X=x
 #[Grasp Affordance, Wrap Affordance...]
 Y=y
-Reg=RandomForestRegressor(n_estimators=1)
+Reg=ExtraTreesRegressor(n_estimators=100,random_state=0)
 print("starting to learn")
 Reg=Reg.fit(X,Y)
 print("done learning")
@@ -19,12 +19,12 @@ print("done learning")
 #print(Reg.predict(X))
 
 #Pickle
-pickle_out = open("C:\\data_for_learning\\Regression.pickle","wb")
+pickle_out = open("C:\\data_for_learning\\RegressionRandom.pickle","wb")
 pickle.dump(Reg, pickle_out)
 pickle_out.close()
 
 
 #FINISHED SOUND
-os.system('Murdar.mp3')
+#os.system('Murdar.mp3')
 
 print("done")
