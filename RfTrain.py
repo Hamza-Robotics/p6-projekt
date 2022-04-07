@@ -1,4 +1,6 @@
+import sklearn
 from sklearn.ensemble import RandomForestRegressor
+import sklearn.feature_selection
 import time
 import numpy as np
 import pickle
@@ -11,15 +13,25 @@ y = np.load('C:\\data_for_learning\\y_values.npy')
 X=x
 #[Grasp Affordance, Wrap Affordance...]
 Y=y
-Reg=RandomForestRegressor(n_estimators=1)
+#Feature Selection:
+#checking for low varriance (ingen features skal fjernes her)
+sel = sklearn.feature_selection.VarianceThreshold(threshold=(.8 * (1 - .8)))
+sel.fit_transform(X)
+print( sel.get_support())
+
+
+
+
+Reg=RandomForestRegressor(n_estimators=100)
+
+print(np.shape(x),np.shape(y))
+print(np.shape(X),np.shape(Y))
+
 print("starting to learn")
 Reg=Reg.fit(X,Y)
 print("done learning")
 
-#print(Reg.predict(X))
-
-#Pickle
-pickle_out = open("C:\\data_for_learning\\Regression.pickle","wb")
+pickle_out = open("C:\\data_for_learning\\RegressionNEW.pickle","wb")
 pickle.dump(Reg, pickle_out)
 pickle_out.close()
 
