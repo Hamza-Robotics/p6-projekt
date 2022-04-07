@@ -60,4 +60,3 @@ print(np.shape(x))
 
 np.save('C:\\data_for_learning\\x_values.npy', x)
 np.save('C:\\data_for_learning\\y_values.npy', y)
-np.save
