@@ -2,7 +2,12 @@ from cProfile import label
 import pickle
 import open3d as o3d
 import numpy as np
+def CenterOfPCD(PCD):
+    m_xyz=np.mean(PCD,axis=0)
+    L=np.linalg.norm(m_xyz-PCD,axis=1).reshape((len(PCD),1))
+    L=(L-min(L))/(max(L)-min(L))
 
+    return L
 
 pickle_file = 'C:\\data_for_learning\\full_shape_train_data.pkl' ### Write path for the full_shape_val_data.pkl file ###
 
@@ -15,7 +20,9 @@ while(1):
     pass
     break
 for i in range(len(data)):
-    if (data[i]['semantic class'] == 'Knife' or data[i]['semantic class'] == 'Bottle' or data[i]['semantic class'] == 'Mug'):
+    if (data[i]['semantic class'] == 'Knife' or data[i]['semantic class'] == 'Bottle'
+     or data[i]['semantic class'] == 'Mug' or data[i]['semantic class'] == 'Clock' ):
+
         objectlist.append(data[i])
     
 
@@ -39,19 +46,25 @@ for i in range(len(objectlist)):
 
     pcd=pcd.voxel_down_sample(voxel_size=0.02)
     pcd.estimate_normals(o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*2, max_nn=30))
-    fph=o3d.pipelines.registration.compute_fpfh_feature(pcd, o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*2, max_nn=55))
+    fph=o3d.pipelines.registration.compute_fpfh_feature(pcd, o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*2, max_nn=100))
+
+    
+    L=CenterOfPCD(np.asarray(pcd.points))
+
 
     fph = np.array(np.asarray(fph.data)).T
     #x.append(fph)
+    fph=np.append(fph,L,axis=1)
     for k in range(len(np.array(pcd.points))):
         x.append(fph[k])
     #labels=[objectlist[i]['full_shape']['label']['grasp'], objectlist[i]['full_shape']['label']['wrap_grasp'], objectlist[i]['full_shape']['label']['contain']]
     #labels = np.reshape(labels,(np.shape(labels)[0],np.shape(labels)[1]))
     if i==0:
-        y=[np.asarray(np.asarray(pcd.colors)[:,:1]),np.asarray(np.asarray(pcd.colors)[:,1:2])]
+        y=[np.asarray(np.asarray(pcd.colors)[:,:1])]
 
     else:    
-        y=np.append(y,([np.asarray(np.asarray(pcd.colors)[:,:1]),np.asarray(np.asarray(pcd.colors)[:,1:2])]),axis=1)
+        y=np.append(y,([np.asarray(np.asarray(pcd.colors)[:,:1])]),axis=1)
+
 
     #print(np.shape([np.asarray(np.asarray(pcd.colors)[:,:1]),np.asarray(np.asarray(pcd.colors)[:,1:2])]))
 
@@ -63,3 +76,5 @@ print(np.shape(x))
 np.save('C:\\data_for_learning\\x_values.npy', x)
 np.save('C:\\data_for_learning\\y_values.npy', y)
 np.save
+
+

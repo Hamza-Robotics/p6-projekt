@@ -11,13 +11,17 @@ y = np.load('C:\\data_for_learning\\y_values.npy')
 
 #[32..features]:
 X=x
-#[Grasp Affordance, Wrap Affordance...]
+#[[Grasp Affordance, Wrap Affordance],[..,..],...]
 Y=y
+
+print("x=",np.shape(x),"   y;",np.shape(Y))
+
 #Feature Selection:
 #checking for low varriance (ingen features skal fjernes her)
-sel = sklearn.feature_selection.VarianceThreshold(threshold=(.8 * (1 - .8)))
+sel = sklearn.feature_selection.VarianceThreshold(threshold=(.7 * (1 - .7)))
 sel.fit_transform(X)
 print( sel.get_support())
+
 
 
 
@@ -31,12 +35,12 @@ print("starting to learn")
 Reg=Reg.fit(X,Y)
 print("done learning")
 
-pickle_out = open("C:\\data_for_learning\\RegressionNEW.pickle","wb")
+pickle_out = open("C:\\data_for_learning\\RegressionNEW2.pickle","wb")
 pickle.dump(Reg, pickle_out)
 pickle_out.close()
 
 
 #FINISHED SOUND
-os.system('Murdar.mp3')
+#os.system('Murdar.mp3')
 
 print("done")
