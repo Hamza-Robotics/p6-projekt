@@ -19,12 +19,12 @@ print("done learning")
 #print(Reg.predict(X))
 
 #Pickle
-pickle_out = open("C:\\data_for_learning\\RegressionRandom.pickle","wb")
+pickle_out = open("C:\\data_for_learning\\RegressionRandom2.pickle","wb")
 pickle.dump(Reg, pickle_out)
 pickle_out.close()
 
 
 #FINISHED SOUND
-#os.system('Murdar.mp3')
+os.system('Murdar.mp3')
 
 print("done")

@@ -35,8 +35,8 @@ for i in range(len(objectlist)):
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector((xyz))
     #o3d.visualization.draw_geometries([pcd])
-    pcd.estimate_normals(o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*2, max_nn=5))
-    fph=o3d.pipelines.registration.compute_fpfh_feature(pcd, o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*2, max_nn=10))
+    pcd.estimate_normals(o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*2, max_nn=100))
+    fph=o3d.pipelines.registration.compute_fpfh_feature(pcd, o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*2, max_nn=200))
     fph = np.array(np.asarray(fph.data)).T
     #x.append(fph)
     for k in range(len(np.array(pcd.points))):

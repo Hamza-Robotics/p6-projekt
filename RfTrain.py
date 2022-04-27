@@ -20,13 +20,12 @@ print("x=",np.shape(x),"   y;",np.shape(Y))
 #checking for low varriance (ingen features skal fjernes her)
 sel = sklearn.feature_selection.VarianceThreshold(threshold=(.7 * (1 - .7)))
 sel.fit_transform(X)
-print( sel.get_support())
 
 
 
 
 
-Reg=RandomForestRegressor(n_estimators=100)
+Reg=RandomForestRegressor(n_estimators=350, random_state=42,verbose=2,max_depth=30,n_jobs=-1)
 
 print(np.shape(x),np.shape(y))
 print(np.shape(X),np.shape(Y))
@@ -35,12 +34,12 @@ print("starting to learn")
 Reg=Reg.fit(X,Y)
 print("done learning")
 
-pickle_out = open("C:\\data_for_learning\\RegressionNEW2.pickle","wb")
+pickle_out = open("C:\\data_for_learning\\RegressionGrasp.pickle","wb")
 pickle.dump(Reg, pickle_out)
 pickle_out.close()
 
 
 #FINISHED SOUND
-#os.system('Murdar.mp3')
+os.system('Murdar.mp3')
 
 print("done")
