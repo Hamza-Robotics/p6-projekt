@@ -36,10 +36,6 @@ PE=[]
 Time=[]
 for i in range(len(objectlist)):
     if True:
-
-
-
-
         xyz=np.asarray(objectlist[i]['full_shape']['coordinate'])
         pcd = o3d.geometry.PointCloud()
         pcd.points = o3d.utility.Vector3dVector((xyz))
@@ -55,15 +51,15 @@ for i in range(len(objectlist)):
         camera = [1,0,diameter]
         _, pt_map = pcd.hidden_point_removal(camera, radius)
         pcd = pcd.select_by_index(pt_map)
-        pcd=pcd.voxel_down_sample(voxel_size=0.02)
+        
+        #pcd=pcd.voxel_down_sample(voxel_size=0)
         Aff_g=np.asarray(np.asarray(pcd.colors)[:, :1]).copy()
         Aff_W=np.asarray(np.asarray(pcd.colors)[:, 1:2]).copy()
 
-        pcd.estimate_normals(o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*5, max_nn=30))
+        pcd.estimate_normals(o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*1, max_nn=30))
         pcd.paint_uniform_color([0, 0, 0])
 
-
-        fph=o3d.pipelines.registration.compute_fpfh_feature(pcd, o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*11, max_nn=100))
+        fph=o3d.pipelines.registration.compute_fpfh_feature(pcd, o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*2, max_nn=100))
         L=CenterOfPCD(np.asarray(pcd.points))
         fph = np.array(np.asarray(fph.data)).T
         #print("L:",np.shape(L))
@@ -71,9 +67,10 @@ for i in range(len(objectlist)):
 
         fph=np.append(fph,L,axis=1)
 
-        #print("fph:",np.shape(fph))
+        print("fph:",np.shape(fph))
         begin=time.time()
-
+        print("pints:",np.shape(np.asarray(pcd.points)))
+        print("len:  ", len(pcd.points), "another",np.shape(pcd.points)[0])
         aff=reg.predict(fph)
         timeittook=time.time()-begin
         #print("aff:",np.shape(aff))
@@ -84,10 +81,15 @@ for i in range(len(objectlist)):
         mAE=sklearn.metrics.mean_absolute_error(Aff_g, aff)
         pe=sklearn.metrics.mean_absolute_percentage_error(Aff_g,aff)
 
+        maxaff=np.argmax(aff)
+
 
         np_colors=np.zeros((len(pcd.points),2))
         np_colors=(np.concatenate((aff,np_colors),axis=1))
+        np_colors[maxaff][:]=0
+        np_colors[maxaff][2]=1     
         pcd.colors=o3d.utility.Vector3dVector(np_colors)
+
         print(np.shape(aff))
         #pcd.colors=o3d.utility.Vector3dVector(np.concatenate((aff,np.asarray(np.asarray(pcd.colors)[:, :1]),np.asarray(np.asarray(pcd.colors)[:, 1:2])),axis=1))
 

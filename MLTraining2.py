@@ -10,7 +10,7 @@ import time
 def CenterOfPCD(PCD):
     m_xyz=np.mean(PCD,axis=0)
     L=np.linalg.norm(m_xyz-PCD,axis=1).reshape((len(PCD),1))
-    L=(L-min(L))/(max(L)-min(L))
+    #L=(L-min(L))/(max(L)-min(L))
 
     return L
 
@@ -27,7 +27,7 @@ def DataDeriver(data,n_,f_,n_nei,f_nei):
         pass
         break
     for i in range(len(data)):
-        if data[i]['semantic class'] == 'Knife' or data[i]['semantic class'] == 'Bottle'  :
+        if data[i]['semantic class'] == 'Knife' or data[i]['semantic class'] == 'Bottle'  or data[i]['semantic class'] == 'Bowl' :
             objectlist.append(data[i])
         
 
@@ -46,8 +46,14 @@ def DataDeriver(data,n_,f_,n_nei,f_nei):
             pcd = o3d.geometry.PointCloud()
             pcd.points = o3d.utility.Vector3dVector((xyz))
 
+            if objectlist[i]['semantic class'] == 'Bowl'  :
+                Aff_v1=objectlist[i]['full_shape']['label']['pourable']
 
-            Aff_v1=objectlist[i]['full_shape']['label']['grasp']
+            if objectlist[i]['semantic class'] == 'Bottle':
+                Aff_v1=objectlist[i]['full_shape']['label']['wrap_grasp']
+            else:  
+                Aff_v1=objectlist[i]['full_shape']['label']['grasp']
+
             Aff_v2=objectlist[i]['full_shape']['label']['wrap_grasp']
             np_colors=np.zeros((len(pcd.points),1))
             np_colors=(np.concatenate((Aff_v1,np_colors,np_colors),axis=1))
@@ -56,18 +62,20 @@ def DataDeriver(data,n_,f_,n_nei,f_nei):
             pcd.points = o3d.utility.Vector3dVector((xyz))
             pcd.colors=o3d.utility.Vector3dVector(np_colors)
 
-            pcd=pcd.voxel_down_sample(voxel_size=0.02)
             diameter = np.linalg.norm(np.asarray(pcd.get_max_bound()) - np.asarray(pcd.get_min_bound()))
-
+            pp=1
             for l in range(1):
-
                 radius = diameter * 100
-                camera = [1,0,diameter]
-                
+
+
+
+                pp=pp*(-1)
+                if objectlist[i]['semantic class'] == 'Bottle': 
+                    camera=[diameter,0,-diameter]
+                else:
+                    camera = [diameter,-diameter,-diameter]
 
                 _, pt_map = pcd.hidden_point_removal(camera, radius)
-                print(pt_map)
-                print(np.shape(np.asarray(pt_map)))
                 pcd2 = pcd.select_by_index(pt_map)
 
 
@@ -101,14 +109,16 @@ def DataDeriver(data,n_,f_,n_nei,f_nei):
                 
 
 
-                #print(np.shape([np.asarray(np.asarray(pcd.colors)[:,:1]),np.asarray(np.asarray(pcd.colors)[:,1:2])]))
+        if i==len(objectlist)-1:
+            print("i:::",i)          #print(np.shape([np.asarray(np.asarray(pcd.colors)[:,:1]),np.asarray(np.asarray(pcd.colors)[:,1:2])]))
     print("time",np.average(np.asarray(t)))
     return x,y
 
-n_v=[5] #5 normals
-f_v=[11] #feature
-n_n=[50] #max niegbourh
-f_n=[100]
+
+n_v=[3] #5 normals
+f_v=[5] #feature
+n_n=[70] #max niegbourh
+f_n=[160]
 
 c = list(itertools.product(n_v, f_v,n_n,f_n))
 c=np.asarray(c)
@@ -128,8 +138,7 @@ for i in range(len(c)):
         best_cor=cor
         best_C=c
 
-print(best_C)
-print(best_cor)
+
 
 
 

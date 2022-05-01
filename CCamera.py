@@ -55,8 +55,7 @@ im_rgbd = rs.capture_frame(True, True)  # wait for frames and align them
 pcd_o = o3d.t.geometry.PointCloud.create_from_rgbd_image(im_rgbd,intrinsic)
 pcd=pcd_o.to_legacy()
 
-voxel_down_pcd = pcd.voxel_down_sample(voxel_size=0.02)
-voxel_down_pcd.remove_radius_outlier(nb_points=16, radius=0.05)
+pcd = pcd.voxel_down_sample(voxel_size=0.01)
 inc,PCL= Segmentation(pcd)
 o3d.visualization.draw_geometries([pcd])
 
