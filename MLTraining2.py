@@ -27,7 +27,7 @@ def DataDeriver(data,n_,f_,n_nei,f_nei):
         pass
         break
     for i in range(len(data)):
-        if data[i]['semantic class'] == 'Knife' or data[i]['semantic class'] == 'Bottle'  or data[i]['semantic class'] == 'Bowl' :
+        if data[i]['semantic class'] == 'Knife' or data[i]['semantic class'] == 'Bottle'   :
             objectlist.append(data[i])
         
 
@@ -74,17 +74,18 @@ def DataDeriver(data,n_,f_,n_nei,f_nei):
                     camera=[diameter,0,-diameter]
                 else:
                     camera = [diameter,-diameter,-diameter]
+                    
+
 
                 _, pt_map = pcd.hidden_point_removal(camera, radius)
                 pcd2 = pcd.select_by_index(pt_map)
-
+   
 
 
                 be=time.time()
 
 
                 pcd2.estimate_normals(o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*n_, max_nn=n_nei))
-                #o3d.visualization.draw_geometries([pcd2])
 
                 fph=o3d.pipelines.registration.compute_fpfh_feature(pcd2, o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*f_, max_nn=f_nei))
 
@@ -116,9 +117,9 @@ def DataDeriver(data,n_,f_,n_nei,f_nei):
 
 
 n_v=[3] #5 normals
-f_v=[5] #feature
-n_n=[70] #max niegbourh
-f_n=[160]
+f_v=[11] #feature
+n_n=[100] #max niegbourh
+f_n=[300]
 
 c = list(itertools.product(n_v, f_v,n_n,f_n))
 c=np.asarray(c)

@@ -25,7 +25,7 @@ sel.fit_transform(X)
 
 
 
-Reg=RandomForestRegressor(n_estimators=350, random_state=42,verbose=2,max_depth=30,n_jobs=-1)
+Reg=RandomForestRegressor(n_estimators=250, random_state=42,verbose=2,max_depth=40,n_jobs=-1)
 
 print(np.shape(x),np.shape(y))
 print(np.shape(X),np.shape(Y))

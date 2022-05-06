@@ -56,10 +56,10 @@ for i in range(len(objectlist)):
         Aff_g=np.asarray(np.asarray(pcd.colors)[:, :1]).copy()
         Aff_W=np.asarray(np.asarray(pcd.colors)[:, 1:2]).copy()
 
-        pcd.estimate_normals(o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*1, max_nn=30))
+        pcd.estimate_normals(o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*3, max_nn=100))
         pcd.paint_uniform_color([0, 0, 0])
 
-        fph=o3d.pipelines.registration.compute_fpfh_feature(pcd, o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*2, max_nn=100))
+        fph=o3d.pipelines.registration.compute_fpfh_feature(pcd, o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*11, max_nn=300))
         L=CenterOfPCD(np.asarray(pcd.points))
         fph = np.array(np.asarray(fph.data)).T
         #print("L:",np.shape(L))
