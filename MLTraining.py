@@ -14,11 +14,12 @@ while(1):
     pass
     break
 for i in range(len(data)):
-    if (data[i]['semantic class'] == 'Knife' or data[i]['semantic class'] == 'Bottle' or data[i]['semantic class'] == 'Bowl' or data[i]['semantic class'] == 'Mug'):
+    if (data[i]['semantic class'] == 'Bottle' or data[i]['semantic class'] == 'Bowl' or data[i]['semantic class'] == 'Mug' or data[i]['semantic class'] == 'Knife'):
         for l in range(len(data[i])):
             data[i]['full_shape']['label']['grasp'][l] = data[i]['full_shape']['label']['grasp'][l][0]
-            data[i]['full_shape']['label']['wrap_grasp'][l] = data[i]['full_shape']['label']['grasp'][l][0]
-            data[i]['full_shape']['label']['contain'][l] = data[i]['full_shape']['label']['grasp'][l][0]
+            data[i]['full_shape']['label']['pourable'][l] = data[i]['full_shape']['label']['pourable'][l][0]
+            #data[i]['full_shape']['label']['wrap_grasp'][l] = data[i]['full_shape']['label']['wrap_grasp'][l][0]
+            #data[i]['full_shape']['label']['contain'][l] = data[i]['full_shape']['label']['contain'][l][0]
 
         objectlist.append(data[i])
         xyz=np.asarray(objectlist[j]['full_shape']['coordinate'])
@@ -26,7 +27,6 @@ for i in range(len(data)):
         pcd.points = o3d.utility.Vector3dVector((xyz))
         pcd=pcd.voxel_down_sample(voxel_size=0.02)
         #o3d.visualization.draw_geometries([pcd])
-        j+=1
 
 x=[]
 y=[]
@@ -45,8 +45,9 @@ for i in range(len(objectlist)):
     #labels = np.reshape(labels,(np.shape(labels)[0],np.shape(labels)[1]))
     labels = []
     for j in range(len(objectlist[i]['full_shape']['label']['grasp'])):
-        labels.append(max(objectlist[i]['full_shape']['label']['grasp'][j],objectlist[i]['full_shape']['label']['wrap_grasp'][j]))
+        labels.append(max(objectlist[i]['full_shape']['label']['grasp'][j],objectlist[i]['full_shape']['label']['pourable'][j]))
         #print(objectlist[i]['full_shape']['label']['grasp'][j], objectlist[i]['full_shape']['label']['wrap_grasp'][j], labels[j])
+        #labels.append(objectlist[i]['full_shape']['label']['wrap_grasp'][j])
     #labels=np.asarray(labels).T
     #labels = np.reshape(labels,(np.shape(labels)[0]))
     for k in range(len(np.array(pcd.points))):

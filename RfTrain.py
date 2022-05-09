@@ -11,7 +11,7 @@ y = np.load('C:\\data_for_learning\\y_values.npy')
 X=x
 #[Grasp Affordance, Wrap Affordance...]
 Y=y
-Reg=RandomForestRegressor(n_estimators=1)
+Reg=RandomForestRegressor(n_estimators=100)
 print("starting to learn")
 Reg=Reg.fit(X,Y)
 print("done learning")

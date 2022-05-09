@@ -14,7 +14,7 @@ with open(pickle_file, 'rb') as f:
 
 objectlist=[]
 for i in range(len(data)):
-    if (data[i]['semantic class'] == 'Knife' or data[i]['semantic class'] == 'Bottle' or data[i]['semantic class'] == 'Bowl' or data[i]['semantic class'] == 'Mug'):
+    if (data[i]['semantic class'] == 'Bottle' or data[i]['semantic class'] == 'Bowl' or data[i]['semantic class'] == 'Mug'):# or data[i]['semantic class'] == 'Knife'):
         objectlist.append(data[i])
 
 MSE=[]
@@ -26,7 +26,7 @@ for i in range(len(objectlist)):
         pcd = o3d.geometry.PointCloud()
         pcd.points = o3d.utility.Vector3dVector((xyz))
         Aff_v1=objectlist[i]['full_shape']['label']['grasp']
-        Aff_v2=objectlist[i]['full_shape']['label']['wrap_grasp']
+        Aff_v2=objectlist[i]['full_shape']['label']['pourable']
         Aff_v=np.maximum(Aff_v1,Aff_v2)
 
         np_colors=np.zeros((len(pcd.points),2))
@@ -59,7 +59,7 @@ for i in range(len(objectlist)):
         np_colors=(np.concatenate((aff,np_colors),axis=1))
         #np_colors=(np.concatenate((aff*2,aff*2,aff*2),axis=1))
         pcd.colors=o3d.utility.Vector3dVector(np_colors)
-        #o3d.visualization.draw_geometries([pcd])
+        o3d.visualization.draw_geometries([pcd])
 
 
 print("Mean squared error",np.asarray(MSE).mean())
