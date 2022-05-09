@@ -1,4 +1,6 @@
-from sklearn.ensemble import ExtraTreesRegressor
+import sklearn
+from sklearn.linear_model import SGDRegressor
+from sklearn import svm
 import time
 import numpy as np
 import pickle
@@ -11,20 +13,23 @@ y = np.load('C:\\data_for_learning\\y_values.npy')
 X=x
 #[Grasp Affordance, Wrap Affordance...]
 Y=y
-Reg=ExtraTreesRegressor(n_estimators=100,random_state=0)
-print("starting to learn")
-Reg=Reg.fit(X,Y)
+
+print(np.shape(y))
+
+
+Reg = SGDRegressor(max_iter=1000, tol=1e-3)
+Reg.fit(X, y)
 print("done learning")
 
 #print(Reg.predict(X))
 
 #Pickle
-pickle_out = open("C:\\data_for_learning\\RegressionRandom2.pickle","wb")
+pickle_out = open("D:\\data_for_learning\\RegressionGD.pickle","wb")
 pickle.dump(Reg, pickle_out)
 pickle_out.close()
 
 
 #FINISHED SOUND
-os.system('Murdar.mp3')
+#os.system('Murdar.mp3')
 
 print("done")
