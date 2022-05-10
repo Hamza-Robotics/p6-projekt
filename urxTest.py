@@ -1,8 +1,14 @@
+import sys
 import urx
 import time
+#from urx.robotiq_two_finger_gripper import Robotiq_Two_Finger_Gripper
+
 a=0.4
 v=0.05
 rob = urx.Robot("172.31.1.115")
+with open('gripper-close2.script', 'r') as script:
+    rob.send_program(script.read())
+    time.sleep(10)
 rob.set_tcp((0, 0, 0.1, 0, 0, 0))
 rob.set_payload(2, (0, 0, 0.1))
 time.sleep(0.2)  #leave some time to robot to process the setup commands
@@ -27,6 +33,7 @@ rob.movel((0, 0.10, 0, 0, 0, 0), wait=True, relative=True)
 #        break
 rob.stopl()
 print("Current tool pose is: ",  rob.get_pose())
+
 try:
     rob.movel((0,0,0.1,0,0,0), relative=True)
 except RobotError as ex:
