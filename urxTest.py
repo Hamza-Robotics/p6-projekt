@@ -13,14 +13,14 @@ print("Current tool pose is: ",  rob.get_pose())
 #rob.translate((0.1, 0, 0))#, a, v)  #move tool and keep orientation
 rob.stopj(a)
 
-rob.movel((0, 0, 0.10, 0, 0, 0), wait=True, relative=False)
+rob.movel((0, 0, 0.10, 0, 0, 0), wait=True, relative=True)
 #while True :
 #    time.sleep(0.1)  #sleep first since the robot may not have processed the command yet
 #    if rob.is_program_running():
 #        break
 print("Current tool pose is: ",  rob.get_pose())
 
-rob.movel((0, 0.10, 0, 0, 0, 0), wait=True, relative=False)
+rob.movel((0, 0.10, 0, 0, 0, 0), wait=True, relative=True)
 #while rob.get_force() < 50 :
 #    time.sleep(0.01)
 #    if not rob.is_program_running():
