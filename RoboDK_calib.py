@@ -4,6 +4,16 @@ import open3d as o3d
 import json
 import pyrealsense2 as rs
 import time
+from robolink import *    # API to communicate with RoboDK
+from robodk import *      # robodk robotics toolbox
+
+# Any interaction with RoboDK must be done through RDK:
+RDK = Robolink()
+
+# Select a robot (popup is displayed if more than one robot is available)
+robot = RDK.ItemUserPick('Select a robot', ITEM_TYPE_ROBOT)
+if not robot.Valid():
+    raise Exception('No robot selected or available')
 
 with open("CameraSetup.json") as cf:
     rs_cfg = o3d.t.io.RealSenseSensorConfig(json.load(cf))
@@ -52,7 +62,7 @@ while (i<10):
     img=np.asarray(im_rgbd.color)
 
     ret,rvec,tvec=CameraPose(img,mtx)
-    pose=np.array([[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]])
+    pose=np.asarray(robot.Pose().Rows())
     rot=pose[0:3,0:3]
     trans=np.reshape(pose[0:3,3],(3,1))
     if ret==True:
