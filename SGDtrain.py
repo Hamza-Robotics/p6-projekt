@@ -1,48 +1,48 @@
-
+import cv2
 import numpy as np
-from sklearn import preprocessing
-import pickle
-
-from sklearn.linear_model import SGDRegressor
-from sklearn.pipeline import make_pipeline
-
-from sklearn.preprocessing import StandardScaler
-
-x = np.load('C:\\data_for_learning\\x_values.npy')
-y = np.load('C:\\data_for_learning\\y_values.npy')
-
-#[32..features]:
-#X=scale(x)
-#[Grasp Affordance, Wrap Affordance...]
-#Y=scale(y)
-
-X=x
-Y=y
+from asyncio.windows_events import NULL
 
 
+img=cv2.imread('img2.png')
 
-print(np.shape(X))
-print(np.shape(Y))
+mtx=np.asarray([[420.12387085,0.,421.87664795],[0.,420.12387085,241.06109619],[0.,0.,1.]])
 
+mtx1=np.asarray([[231.7225,0,161.8237],[0,229.9110,80.4734],[0,0,1.0000]])
 
-Reg=make_pipeline(StandardScaler(),SGDRegressor(max_iter=10000, tol=1e-3))
+criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
+objp = np.zeros((9*7,3), np.float32)
 
+objp[:,:2] = np.mgrid[0:7,0:9].T.reshape(-1,2)
 
+gray = cv2.cvtColor(img,cv2.COLOR_RGB2GRAY)
 
+ret, corners = cv2.findChessboardCorners(gray, (7,9),None)
 
-print("starting to learn")
-Reg.fit(X,Y)
-print("done learning")
+#solvepnp with factory calibration
 
+if ret == True:
 
+    corners2 = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
 
-pickle_out = open("C:\\data_for_learning\\RegressionGD.pickle","wb")
-pickle.dump(Reg, pickle_out)
-pickle_out.close()
+    # Find the rotation and translation vectors.
 
+    ret,rvecs, tvecs = cv2.solvePnP(objp, corners2, mtx,NULL)
 
-#FINISHED SOUND
-#os.system('Murdar.mp3')
+    print("norm:\n",np.linalg.norm(tvecs))
 
-print("done")
+    print("vector:\n",tvecs)
+
+#solvepnp with matlab calibration
+
+if ret == True:
+
+    corners2 = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
+
+    # Find the rotation and translation vectors.
+
+    ret,rvecs, tvecs = cv2.solvePnP(objp, corners2, mtx1,NULL)
+
+    print("norm:\n",np.linalg.norm(tvecs))
+
+    print("vector:\n",tvecs)

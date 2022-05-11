@@ -162,45 +162,47 @@ def run():
                             i=i+1
         except StopIteration: pass
 
-color,depth=run()
+
+while True:
+    color,depth=run()
 
 
-color=o3d.geometry.Image((color))
-depth=o3d.geometry.Image((depth))
+    color=o3d.geometry.Image((color))
+    depth=o3d.geometry.Image((depth))
 
-rgbd = o3d.geometry.RGBDImage.create_from_color_and_depth(color, depth,convert_rgb_to_intensity=False)
-print("intrinc",type(intrinsic))
-print("rgb",type(rgbd))
-pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd,intrinsic)
-#pcd = pcd.voxel_down_sample(voxel_size=0.0)
-#voxel_down_pcd.remove_radius_outlier(nb_points=16, radius=0.05)
-print(np.asarray(pcd.colors))
-print(np.shape(np.sum(np.asarray(pcd.colors),axis=0) ))
-sel=np.where(np.sum(np.asarray(pcd.colors),axis=1) > 0)[0]
-pcd=pcd2 = pcd.select_by_index(sel)
-
-
+    rgbd = o3d.geometry.RGBDImage.create_from_color_and_depth(color, depth,convert_rgb_to_intensity=False)
+    print("intrinc",type(intrinsic))
+    print("rgb",type(rgbd))
+    pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd,intrinsic)
+    #pcd = pcd.voxel_down_sample(voxel_size=0.0)
+    #voxel_down_pcd.remove_radius_outlier(nb_points=16, radius=0.05)
+    print(np.asarray(pcd.colors))
+    print(np.shape(np.sum(np.asarray(pcd.colors),axis=0) ))
+    sel=np.where(np.sum(np.asarray(pcd.colors),axis=1) > 0)[0]
+    pcd=pcd2 = pcd.select_by_index(sel)
 
 
-pcd.estimate_normals(o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*3, max_nn=400))
-fph=o3d.pipelines.registration.compute_fpfh_feature(pcd, o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*7, max_nn=900))
-L=CenterOfPCD(np.asarray(pcd.points))
-fph = np.array(np.asarray(fph.data)).T
-#fph=np.append(fph,L,axis=1)
-
-aff=reg.predict(fph)
-aff=np.asarray(aff).reshape((len(pcd.points),1))
-nps=np.zeros(np.shape(aff))
-
-#pcd.colors=o3d.utility.Vector3dVector(np.concatenate((aff,np.asarray(np.asarray(pcd.colors)[:, :1]),np.asarray(np.asarray(pcd.colors)[:, 1:2])),axis=1))
-pcd.colors=o3d.utility.Vector3dVector(np.concatenate((aff,nps,nps),axis=1))
-
-o3d.visualization.draw_geometries([pcd])
-
-np.save('pcd.npy',np.asanyarray(pcd.points))
-np.save('pcd_c.npy',pcd.colors)
 
 
-#o3d.visualization.draw_geometries([pcd])
+    pcd.estimate_normals(o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*3, max_nn=100))
+    fph=o3d.pipelines.registration.compute_fpfh_feature(pcd, o3d.geometry.KDTreeSearchParamHybrid(radius=0.02*7, max_nn=300))
+    L=CenterOfPCD(np.asarray(pcd.points))
+    fph = np.array(np.asarray(fph.data)).T
+    fph=np.append(fph,L,axis=1)
+
+    aff=reg.predict(fph)
+    aff=np.asarray(aff).reshape((len(pcd.points),1))
+    nps=np.zeros(np.shape(aff))
+    pcd.paint_uniform_color([0, 0, 0])
+    #pcd.colors=o3d.utility.Vector3dVector(np.concatenate((aff,np.asarray(np.asarray(pcd.colors)[:, :1]),np.asarray(np.asarray(pcd.colors)[:, 1:2])),axis=1))
+    pcd.colors=o3d.utility.Vector3dVector(np.concatenate((aff,nps,nps),axis=1))
+
+    o3d.visualization.draw_geometries([pcd])
+
+    np.save('pcd.npy',np.asanyarray(pcd.points))
+    np.save('pcd_c.npy',pcd.colors)
+
+
+    #o3d.visualization.draw_geometries([pcd])
 
 
