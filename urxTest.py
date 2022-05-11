@@ -6,7 +6,7 @@ import time
 a=0.4
 v=0.05
 rob = urx.Robot("172.31.1.115")
-with open('gripper-close2.script', 'r') as script:
+with open('gripperScripts//closeg.script', 'r') as script:
     rob.send_program(script.read())
     time.sleep(10)
 rob.set_tcp((0, 0, 0.1, 0, 0, 0))
@@ -26,7 +26,7 @@ rob.movel((0, 0, 0.10, 0, 0, 0), wait=True, relative=True)
 #        break
 print("Current tool pose is: ",  rob.get_pose())
 
-rob.movel((0, 0.10, 0, 0, 0, 0), wait=True, relative=True)
+rob.movel((0.10, 0.10, 0, 0, 0, 0), wait=True, relative=True)
 #while rob.get_force() < 50 :
 #    time.sleep(0.01)
 #    if not rob.is_program_running():
@@ -34,7 +34,7 @@ rob.movel((0, 0.10, 0, 0, 0, 0), wait=True, relative=True)
 rob.stopl()
 print("Current tool pose is: ",  rob.get_pose())
 
-try:
-    rob.movel((0,0,0.1,0,0,0), relative=True)
-except RobotError as ex:
-    print("Robot could not execute move (emergency stop for example), do something", ex)
+#try:
+#    rob.movel((0,0,0.1,0,0,0), relative=True)
+#except RobotError as ex:
+#    print("Robot could not execute move (emergency stop for example), do something", ex)
