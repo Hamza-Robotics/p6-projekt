@@ -40,6 +40,7 @@ def DataDeriver(data,n_,f_,n_nei,f_nei):
      #       501,511,524,536,538,543,547,550,552,553,561,568,571,571,577,583,588,591,616,617,619,629]:
       #          print(i)
         if True:
+            print(i/len(objectlist))
 
             #377 380 382 456 475
             xyz=np.asarray(objectlist[i]['full_shape']['coordinate'])
@@ -96,6 +97,7 @@ def DataDeriver(data,n_,f_,n_nei,f_nei):
                 fph = np.array(np.asarray(fph.data)).T
                 #x.append(fph)
                 fph=np.append(fph,L,axis=1)
+                print(np.shape(fph))
                 for k in range(len(np.array(pcd2.points))):
                     x.append(fph[k])
                 #labels=[objectlist[i]['full_shape']['label']['grasp'], objectlist[i]['full_shape']['label']['wrap_grasp'], objectlist[i]['full_shape']['label']['contain']]
@@ -150,6 +152,5 @@ print(np.shape(x))
 
 np.save('C:\\data_for_learning\\x_values.npy', x)
 np.save('C:\\data_for_learning\\y_values.npy', y)
-np.save
 
 
