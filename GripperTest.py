@@ -2,11 +2,12 @@ import sys
 import urx
 import time
 import math
+import math3d as m3d
 
 rob = urx.Robot("172.31.1.115")
 a=0.4
-v=0.3
-print("Current tcp pos is: ", rob.get_pos())
+v=0.05
+print("Current tcp pose is: ", rob.get_pose())
 
 
 #rob.movej((0, -math.pi/3, math.pi/3, 0, math.pi/2, math.pi/2), a, v, wait=True, relative=False)
@@ -42,9 +43,38 @@ def moveIngremental(begin = False, vertical=False):
     else:
         rob.movel((0.01, -0.01, 0, math.pi/20, math.pi/20, 0), a, v, wait=True, relative=True)
     time.sleep(4)
-for i in range(5):
-    rob.movej((3,0,0,0,0,0),a,v,wait = True, relative = True)
-    rob.movej((-3,0,0,0,0,0),a,v,wait = True, relative = True)
+
+def dontdothis():
+    for i in range(5):
+        rob.movej((3,0,0,0,0,0),a,v,wait = True, relative = True)
+        rob.movej((-3,0,0,0,0,0),a,v,wait = True, relative = True)
+
+def tryThis():
+    mytcp = m3d.Transform()  # create a matrix for our tool tcp
+    #mytcp.pos.z = 0.18
+    mytcp.pos = (-0.4,-0.4,0.3)
+    mytcp.orient.rotate_xb(math.pi)
+    #mytcp.orient.rotate_yb(math.pi)
+    mytcp.orient.rotate_zb(math.pi/2)
+    print(mytcp)
+    approach = mytcp.get_orient() * m3d.Vector(0,0,-0.1)
+    print(approach)
+    mytcp.pos += approach
+    print(mytcp)
+    rob.set_pose(mytcp,a,v,wait = True, command = 'movej')
+
+    print("Current tcp pose is: ", rob.get_pose())
+    with open('gripperScripts//openg.script', 'r') as script:
+        rob.send_program(script.read())
+        time.sleep(2)
+    rob.back(-0.1,a,v)
+    print("Current tcp pose is: ", rob.get_pose())
+    with open('gripperScripts//closeg.script', 'r') as script:
+        rob.send_program(script.read())
+        time.sleep(1)
 
 
-rob.stop()
+
+tryThis()
+
+#rob.stop()
