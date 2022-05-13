@@ -54,6 +54,7 @@ def moveIngremental(begin, mode, i):
         rob.set_pose(mytcp,a,v,wait = True, command = 'movej')
     else:
         rob.back(0.05)
+    time.sleep(4)
 
 
 def CameraPose(img,mtx):
@@ -90,7 +91,7 @@ while (i<35):
     else:
         mode = 2
 
-    if (i==0 or i==18 or 28):
+    if (i==0 or i==18 or i==28):
         moveIngremental(True, mode, i)
     else:
         moveIngremental(False, mode, i-18)
