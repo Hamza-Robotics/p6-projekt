@@ -97,9 +97,9 @@ def grasp_Positions(pcd,aff):
         k1k2=([S[0],S[1]])
         m_curv=([(S[0]+S[1]/2)])
         g_curv=([(S[0]*S[1]/2)])
-        T[0, 3]=np.asarray(pcd_.points)[i][0]
-        T[1, 3]=np.asarray(pcd_.points)[i][1]
-        T[2, 3]=np.asarray(pcd_.points)[i][2]
+        T[0, 3]=(np.asarray(pcd_.points)[:,0])
+        T[1, 3]=(np.asarray(pcd_.points)[:,1])
+        T[2, 3]=(np.asarray(pcd_.points)[:,2])/1000
         R,_=cv2.Rodrigues(PfLEO_OBB.R)
 
         for r in range(1):
@@ -114,10 +114,12 @@ def grasp_Positions(pcd,aff):
                     k1k2,m_curv,g_curv))
                     
                     if len(X)==0:
+                        T[:3, :3]=np.zeros((3,3))
                         X=np.transpose(np.expand_dims(x,axis=1))
                         Poses=[T]
                         print("100", np.shape(np.array(Poses)))
                     else:
+                        T[:3, :3]=np.zeros((3,3))
                         X=np.concatenate((X,np.transpose(np.expand_dims(x,axis=1))),axis=0)
                         Poses=np.concatenate((Poses,[T]),axis=0)
 
@@ -278,6 +280,7 @@ def run():
                                 for iy, ix in np.ndindex(np.shape(foo_)):
                                     if foo_[iy,ix]==0:
                                         depth[iy,ix]=0
+                       
                               
                                                                 #depth=cv2.cvtColor(depth,cv2.COLOR_GRAY2BGR)
 
@@ -287,7 +290,7 @@ def run():
 
                                 #result_depth=cv2.cvtColor(depth,cv2.COLOR_RGB2GRAY)
 
-                                return result_img, depth
+                                return result_img, np.asarray(depth)
                                 
 
                         for k in range(len(BOX)):
@@ -304,11 +307,16 @@ def run():
 
 def calculateT2B(world2camMat, inverse = False):
     cam2gripperMat = np.load('CameraCalib.npy')
-    base2gripperMat = rob.get_pose()
-    gripper2baseMat = base2gripperMat.get_inverse()
+    gripper2baseMat = rob.get_pose()
+    #base2gripperMat = gripper2baseMat.get_inverse()
+
     gripper2baseMat = gripper2baseMat.get_matrix()
+    #base2gripperMat = base2gripperMat.get_matrix()
     if inverse == False:
         world2base = world2camMat * cam2gripperMat * gripper2baseMat
+
+
+
     else:
         world2base = gripper2baseMat * cam2gripperMat * world2camMat
     return world2base
@@ -319,11 +327,14 @@ while True:
     print("here")
     color=o3d.geometry.Image((color))
     depth=o3d.geometry.Image((depth))
-    intrinsic=o3d.camera.PinholeCameraIntrinsic(intr.width,intr.height ,317.9628,320.223,216.6219,114.8350)
+    #intrinsic=o3d.camera.PinholeCameraIntrinsic(intr.width,intr.height ,317.9628,320.223,216.6219,114.8350)
+    intrinsic=o3d.camera.PinholeCameraIntrinsic(intr.width,intr.height ,intr.fx,intr.fy,intr.ppx,intr.ppy)
+    intrinsic=o3d.camera.PinholeCameraIntrinsic(intr.width,intr.height ,976.23415007,980.51695051, 695.12887163,226.97863859)
+
 
     rgbd = o3d.geometry.RGBDImage.create_from_color_and_depth(color, depth,convert_rgb_to_intensity=False)
     pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd,intrinsic)
-    pcd=pcd.voxel_down_sample(voxel_size=0.02)
+    pcd=pcd.voxel_down_sample(voxel_size=0.005)
     o3d.visualization.draw_geometries([pcd])
 
     x=Extract_Feature(pcd)
@@ -335,21 +346,20 @@ while True:
     T,X,pcd_=grasp_Positions(pcd,aff)
     print("    qqqq   ")
 
-    #print(cam2gripperMat)
-    print("    ssss   ")
+ 
+    
+    print("    matrix   ")
+    R,_=cv2.Rodrigues(calculateT2B(T[0])[:3, :3])
+    print(R,calculateT2B(T[0])[0, 3]*1000,calculateT2B(T[0])[1, 3]*1000,calculateT2B(T[0])[2, 3]*1000)
 
-    print(T[0])
-
-    print("    ddd   ")
-    print(calculateT2B(T[0]))
-    print(calculateT2B(T[0], inverse = True))
+    print("other method")
+    R,_=cv2.Rodrigues(calculateT2B(T[0], inverse = True)[:3, :3])
+    print(R,calculateT2B(T[0], inverse = True)[0, 3]*1000,calculateT2B(T[0], inverse = True)[1, 3]*1000,calculateT2B(T[0], inverse = True)[2, 3]*1000)
+    
 
     #pcd.colors=o3d.utility.Vector3dVector(np.concatenate((aff,np.asarray(np.asarray(pcd.colors)[:, :1]),np.asarray(np.asarray(pcd.colors)[:, 1:2])),axis=1))
 
-    o3d.visualization.draw_geometries([pcd])
 
-    np.save('pcd2.npy',np.asanyarray(pcd.points))
-    np.save('pcd2_c.npy',pcd.colors)
 
 
 
