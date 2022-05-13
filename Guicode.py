@@ -306,7 +306,7 @@ while True:
 
     rgbd = o3d.geometry.RGBDImage.create_from_color_and_depth(color, depth,convert_rgb_to_intensity=False)
     pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd,intrinsic)
-    #pcd=pcd.voxel_down_sample(voxel_size=0.007)
+    pcd=pcd.voxel_down_sample(voxel_size=0.007)
     #o3d.visualization.draw_geometries([pcd])
 
     x=Extract_Feature(pcd)

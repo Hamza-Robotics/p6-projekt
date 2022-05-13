@@ -1,4 +1,5 @@
 import cv2
+from cv2 import waitKey
 import numpy as np
 import open3d as o3d
 import json
@@ -8,7 +9,14 @@ import sys
 import urx
 import time
 
-rob = urx.Robot("172.31.1.115")
+while True:
+    try:
+        time.sleep(3)
+        rob = urx.Robot("172.31.1.115")
+    except:
+        rob.stop()
+    else:
+        break
 a=0.4
 v=0.2
 
@@ -21,7 +29,9 @@ profile = cfg.get_stream(rs.stream.depth) # Fetch stream profile for depth strea
 intr = profile.as_video_stream_profile().get_intrinsics() # Downcast to video_stream_profile and fetch intrinsics
 rs = o3d.t.io.RealSenseSensor()
 rs.init_sensor(rs_cfg, 0)
-intrinsic=o3d.camera.PinholeCameraIntrinsic(intr.width,intr.height ,intr.fx,intr.fy,intr.ppx,intr.ppy)
+#intrinsic=o3d.camera.PinholeCameraIntrinsic(intr.width,intr.height ,intr.fx,intr.fy,intr.ppx,intr.ppy)
+intrinsic=o3d.camera.PinholeCameraIntrinsic(intr.width,intr.height ,317.9628,320.223,216.6219,114.8350)
+
 rs.start_capture(True)  # true: start recording with capture  
 im_rgbd = rs.capture_frame(True, True)  # wait for frames and align the
 img=np.asarray(im_rgbd.color)
@@ -44,7 +54,7 @@ def CameraPose(img,mtx):
 #solvepnp from chessboard
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
     objp = np.zeros((9*7,3), np.float32)
-    objp[:,:2] = np.mgrid[0:7,0:9].T.reshape(-1,2)*20
+    objp[:,:2] = np.mgrid[0:7,0:9].T.reshape(-1,2)*0.02
 
     gray = cv2.cvtColor(img,cv2.COLOR_RGB2GRAY)
     ret, corners = cv2.findChessboardCorners(gray, (7,9),None)
@@ -93,7 +103,7 @@ while (i<15):
         t_gripper2base.append(trans)
         R_target2cam.append(rvec)
         t_target2cam.append(tvec)
-        print("Yay")
+        print(np.linalg.norm(tvec))
     i=i+1
     #time.sleep(0.4)
 
@@ -111,6 +121,18 @@ t_target2cam=  np.asarray(t_target2cam)
 #print("shape",np.shape(t_gripper2base))
 
 #print(R_gripper2base)
-R,T=cv2.calibrateHandEye(R_gripper2base,t_gripper2base,R_target2cam,t_target2cam)
-print(R)
+R,t=cv2.calibrateHandEye(R_gripper2base,t_gripper2base,R_target2cam,t_target2cam)
+T = np.eye(4)
+print(t)
+T[:3, :3]= R
+T[0, 3]=t[0]
+T[1, 3]=t[1]
+T[2, 3]=t[2]
+
+
 print(T)
+np.save("CameraCalib.npy",T)
+
+rob.stop()
+rob.close()
+sys.exit()
