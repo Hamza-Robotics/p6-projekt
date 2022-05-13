@@ -30,6 +30,7 @@ rs = o3d.t.io.RealSenseSensor()
 rs.init_sensor(rs_cfg, 0)
 #intrinsic=o3d.camera.PinholeCameraIntrinsic(intr.width,intr.height ,intr.fx,intr.fy,intr.ppx,intr.ppy)
 intrinsic=o3d.camera.PinholeCameraIntrinsic(intr.width,intr.height ,317.9628,320.223,216.6219,114.8350)
+intrinsic=o3d.camera.PinholeCameraIntrinsic(intr.width,intr.height ,976.23415007,980.51695051, 695.12887163,226.97863859)
 
 rs.start_capture(True)  # true: start recording with capture  
 im_rgbd = rs.capture_frame(True, True)  # wait for frames and align the
