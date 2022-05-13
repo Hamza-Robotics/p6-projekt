@@ -38,17 +38,23 @@ img=np.asarray(im_rgbd.color)
 mtx=(intrinsic.intrinsic_matrix)
 n=np.array([])
 
-def moveIngremental(begin, vertical, i):
+def moveIngremental(begin, mode, i):
     print("moving robot")
-    if vertical and begin:
+    if mode == 0 and begin:
         rob.movej([0.7853862047195435, -1.515883747731344, 2.183744430541992, 0.028925776481628418, 1.7645397186279297, 1.702071189880371], a, v, wait=True, relative=False)
-    elif vertical:
+    elif mode == 0:
         rob.movel((0, 0, 0.075, np.pi/(40+i*20), -np.pi/(40+i*20), 0), a, v, wait=True, relative=True)
-    elif begin:
+    elif mode == 1 and begin:
         rob.movej([0.11325842142105103, -0.38410789171327764, 0.6964402198791504, 1.9883853197097778, 0.7105001211166382, 0.6198690533638], a, v, wait=True, relative=False)
-    else:
+    elif mode == 1:
         rob.movel((0.005, -0.005, 0, np.pi/40, np.pi/40, 0), a, v, wait=True, relative=True)
-    time.sleep(4)
+    elif mode == 2 and begin:
+        mytcp.pos = (-0.46610, -0.52469, 0.09467)
+        mytcp.orient = [[-0.39640639, -0.70488675, -0.58821479],[-0.4065947 ,  0.70923652, -0.57590304],[ 0.82312983,  0.01087337, -0.56774911]]
+        rob.set_pose(mytcp,a,v,wait = True, command = 'movej')
+    else:
+        rob.back(0.05)
+
 
 def CameraPose(img,mtx):
 #solvepnp from chessboard
@@ -76,16 +82,18 @@ R_target2cam=[]
 t_target2cam=[]
 
 i=0
-while (i<28):
+while (i<35):
     if (i < 18):
-        vert = False
+        mode = 0
+    elif (i < 28):
+        mode = 1
     else:
-        vert = True
+        mode = 2
 
-    if (i==0 or i==18):
-        moveIngremental(True, vert, i)
+    if (i==0 or i==18 or 28):
+        moveIngremental(True, mode, i)
     else:
-        moveIngremental(False, vert, i-18)
+        moveIngremental(False, mode, i-18)
 
     im_rgbd = rs.capture_frame(True, True)  # wait for frames and align the
     img=np.asarray(im_rgbd.color)
