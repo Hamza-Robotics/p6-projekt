@@ -6,8 +6,12 @@ import math3d as m3d
 
 rob = urx.Robot("172.31.1.115")
 a=0.4
-v=0.05
-print("Current tcp pose is: ", rob.get_pose())
+v=0.5
+startingPose = rob.get_pose()
+print("Starting Pose tcp pose is: ", startingPose)
+
+
+print("current orientation is: ", startingPose.get_orient())
 
 
 #rob.movej((0, -math.pi/3, math.pi/3, 0, math.pi/2, math.pi/2), a, v, wait=True, relative=False)
@@ -52,7 +56,7 @@ def dontdothis():
 def tryThis():
     mytcp = m3d.Transform()  # create a matrix for our tool tcp
     #mytcp.pos.z = 0.18
-    mytcp.pos = (-0.4,-0.4,0.3)
+    mytcp.pos = (-0.4,-0.4,0.2)
     mytcp.orient.rotate_xb(math.pi)
     #mytcp.orient.rotate_yb(math.pi)
     mytcp.orient.rotate_zb(math.pi/2)
@@ -74,8 +78,18 @@ def tryThis():
         rob.send_program(script.read())
         time.sleep(1)
 
+def MoveBack():
+    mytcp = m3d.Transform()  # create a matrix for our tool tcp
+    mytcp.pos = (-0.46610, -0.52469, 0.09467)
+    mytcp.orient = [[-0.39640639, -0.70488675, -0.58821479],[-0.4065947 ,  0.70923652, -0.57590304],[ 0.82312983,  0.01087337, -0.56774911]]
 
+    rob.set_pose(mytcp,a,v,wait = True, command = 'movej')
+    for i in range(6):
+        rob.back(0.05)
+        print(i)
+        time.sleep(4)
 
-tryThis()
+#tryThis()
+MoveBack()
 
-#rob.stop()
+rob.stop()
