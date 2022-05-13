@@ -10,7 +10,14 @@ import numpy as np
 import cv2
 import msvcrt
 import pickle
-print(np.load('CameraCalib.npy'))
+import sys
+import urx
+import time
+import math
+import math3d as m3d
+
+rob = urx.Robot("172.31.1.115")
+
 
 o3d.t.io.RealSenseSensor.list_devices()
 
@@ -128,7 +135,9 @@ def ColorAffordance(aff,pcd,color):
     pcd.colors=o3d.utility.Vector3dVector(np_colors)
 
     return pcd
+
 factor=10
+
 def SVD_Principal_Curvature(Pointcloud,radius):
     k1k2=[]
     m_curv=[]
@@ -168,8 +177,6 @@ def Extract_Feature(pcd):
     x=np.append(cur,fph,axis=1)
 
     return x
-
-
 
 def run():
 
@@ -296,6 +303,17 @@ def run():
                             i=i+1
         except StopIteration: pass
 
+def calculateT2B(world2camMat, inverse = False):
+    cam2gripperMat = np.load('CameraCalib.npy')
+    base2gripperMat = rob.get_pose()
+    gripper2baseMat = base2gripper.get_inverse()
+    gripper2baseMat = gripper2baseMat.get_matrix()
+    if inverse == False:
+        world2base = world2camMat * cam2gripperMat * gripper2baseMat.get_matrix()
+    else:
+        world2base = gripper2baseMat.get_matrix() * cam2gripperMat * world2camMat
+    return world2base
+
 
 while True:
     color,depth=run()
@@ -318,14 +336,14 @@ while True:
     T,X,pcd_=grasp_Positions(pcd,aff)
     print("    qqqq   ")
 
-    print(np.load('CameraCalib.npy'))
+    #print(cam2gripperMat)
     print("    ssss   ")
 
     print(T[0])
 
     print("    ddd   ")
-    print(np.load('CameraCalib.npy')*T[0])
-    print(T[0]*np.load('CameraCalib.npy'))
+    print(calculateT2B(T[0]))
+    print(calculateT2B(T[0], inverse = True))
 
     #pcd.colors=o3d.utility.Vector3dVector(np.concatenate((aff,np.asarray(np.asarray(pcd.colors)[:, :1]),np.asarray(np.asarray(pcd.colors)[:, 1:2])),axis=1))
 

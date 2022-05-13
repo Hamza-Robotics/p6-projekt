@@ -7,7 +7,6 @@ import pyrealsense2 as rs
 import time
 import sys
 import urx
-import time
 
 while True:
     try:

@@ -62,6 +62,7 @@ def tryThis():
     mytcp.pos += approach
     print(mytcp)
     rob.set_pose(mytcp,a,v,wait = True, command = 'movej')
+    mytcp.get_matrix()
 
     print("Current tcp pose is: ", rob.get_pose())
     with open('gripperScripts//openg.script', 'r') as script:
