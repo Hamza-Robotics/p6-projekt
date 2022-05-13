@@ -43,11 +43,11 @@ def moveIngremental(begin, vertical, i):
     if vertical and begin:
         rob.movej([0.7853862047195435, -1.515883747731344, 2.183744430541992, 0.028925776481628418, 1.7645397186279297, 1.702071189880371], a, v, wait=True, relative=False)
     elif vertical:
-        rob.movel((0, 0, 0.15, np.pi/(40+i*10), -np.pi/(40+i*10), 0), a, v, wait=True, relative=True)
+        rob.movel((0, 0, 0.075, np.pi/(40+i*20), -np.pi/(40+i*20), 0), a, v, wait=True, relative=True)
     elif begin:
         rob.movej([0.11325842142105103, -0.38410789171327764, 0.6964402198791504, 1.9883853197097778, 0.7105001211166382, 0.6198690533638], a, v, wait=True, relative=False)
     else:
-        rob.movel((0.01, -0.01, 0, np.pi/20, np.pi/20, 0), a, v, wait=True, relative=True)
+        rob.movel((0.005, -0.005, 0, np.pi/40, np.pi/40, 0), a, v, wait=True, relative=True)
     time.sleep(4)
 
 def CameraPose(img,mtx):
@@ -76,16 +76,16 @@ R_target2cam=[]
 t_target2cam=[]
 
 i=0
-while (i<15):
-    if (i < 9):
+while (i<28):
+    if (i < 18):
         vert = False
     else:
         vert = True
 
-    if (i==0 or i==9):
+    if (i==0 or i==18):
         moveIngremental(True, vert, i)
     else:
-        moveIngremental(False, vert, i-9)
+        moveIngremental(False, vert, i-18)
 
     im_rgbd = rs.capture_frame(True, True)  # wait for frames and align the
     img=np.asarray(im_rgbd.color)
