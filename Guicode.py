@@ -17,7 +17,7 @@ import math
 import math3d as m3d
 
 rob = urx.Robot("172.31.1.115")
-
+print("pose:",rob.get_pose())
 
 o3d.t.io.RealSenseSensor.list_devices()
 
@@ -35,15 +35,14 @@ intr = profile.as_video_stream_profile().get_intrinsics() # Downcast to video_st
 
 #intrinsic=(o3d.cpu.pybind.core.Tensor(np.array([[231.7225,0,161.8237],[0,229.9110,80.4734],[0,0,1.0000]])))
 #intrinsic=(o3d.cpu.pybind.core.Tensor(np.array([[intr.fx, 0, intr.ppx], [0, intr.fy, intr.ppy], [0, 0, 1]])))
-intrinsic=o3d.camera.PinholeCameraIntrinsic(intr.width,intr.height ,intr.fx,intr.fy,intr.ppx,intr.ppy)
+#intrinsic=o3d.camera.PinholeCameraIntrinsic(intr.width,intr.height ,intr.fx,intr.fy,intr.ppx,intr.ppy)
 
-print(intr.width,intr.height)
 #intrinsic=o3d.camera.PinholeCameraIntrinsic(intr.width,intr.height ,317.9628,320.223,216.6219,114.8350)
 
 def Rotation(rot,iteration,resulution):
     Circle=np.linspace(0, 2*np.pi, resulution)
     
-    angle=rot-Circle[iteration]
+    angle=rot-Circle[0]
     
     #if angle>2*np.pi:  
       #  angle=angle-2*np.pi
@@ -306,12 +305,12 @@ def run():
 def calculateT2B(world2camMat, inverse = False):
     cam2gripperMat = np.load('CameraCalib.npy')
     base2gripperMat = rob.get_pose()
-    gripper2baseMat = base2gripper.get_inverse()
+    gripper2baseMat = base2gripperMat.get_inverse()
     gripper2baseMat = gripper2baseMat.get_matrix()
     if inverse == False:
-        world2base = world2camMat * cam2gripperMat * gripper2baseMat.get_matrix()
+        world2base = world2camMat * cam2gripperMat * gripper2baseMat
     else:
-        world2base = gripper2baseMat.get_matrix() * cam2gripperMat * world2camMat
+        world2base = gripper2baseMat * cam2gripperMat * world2camMat
     return world2base
 
 
@@ -324,8 +323,8 @@ while True:
 
     rgbd = o3d.geometry.RGBDImage.create_from_color_and_depth(color, depth,convert_rgb_to_intensity=False)
     pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd,intrinsic)
-    pcd=pcd.voxel_down_sample(voxel_size=0.007)
-    #o3d.visualization.draw_geometries([pcd])
+    pcd=pcd.voxel_down_sample(voxel_size=0.02)
+    o3d.visualization.draw_geometries([pcd])
 
     x=Extract_Feature(pcd)
 
