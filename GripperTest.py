@@ -107,14 +107,22 @@ def moveIngremental(begin, mode, i):
         rob.set_pose(mytcp,a,v,wait = True, command = 'movej')
     elif mode == 2:
         rob.back(0.05, a, v)
-    else:
+    elif mode == 3:
         rob.movel((-0.15, 0.15, 0, 0, 0, np.pi/20), a, v, wait=True, relative=True)
+    elif mode == 4 and begin:
+        mytcp = m3d.Transform()
+        mytcp.pos = rob.get_pos()
+        mytcp.orient = [[ 0.06740949,  0.99326777,  0.09420771],[ 0.38316714,  0.06140949, -0.9216354 ],[-0.92121599,  0.09822428, -0.37644799]]
+        rob.set_pose(mytcp,a,v,wait = True, command = 'movej')
+        rob.back(-0.15, a, v)
+    else:
+        rob.movel((0.15, -0.15, 0, 0, 0, -np.pi/18), a, v, wait=True, relative=True)
 
-    time.sleep(4)
+    time.sleep(1)
 
 def whileTest():
-    i=0
-    while (i<45):
+    i=35
+    while (i<54):
         print(i)
         if (i < 18):
             mode = 0
@@ -122,10 +130,11 @@ def whileTest():
             mode = 1
         elif (i < 40):
             mode = 2
-        else:
+        elif  (i < 45):
             mode = 3
-
-        if (i==0 or i==18 or i==35):
+        else:
+            mode = 4
+        if (i==0 or i==18 or i==35 or i == 45):
             moveIngremental(True, mode, i)
         else:
             moveIngremental(False, mode, i-18)
@@ -134,7 +143,7 @@ def whileTest():
         #time.sleep(0.4)
 
 #tryThis()
-MoveBack()
-#whileTest()
+#MoveBack()
+whileTest()
 
 rob.stop()
