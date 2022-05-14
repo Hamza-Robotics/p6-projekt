@@ -7,6 +7,7 @@ import pyrealsense2 as rs
 import time
 import sys
 import urx
+import math3d as m3d
 
 while True:
     try:
@@ -29,13 +30,11 @@ intr = profile.as_video_stream_profile().get_intrinsics() # Downcast to video_st
 rs = o3d.t.io.RealSenseSensor()
 rs.init_sensor(rs_cfg, 0)
 #intrinsic=o3d.camera.PinholeCameraIntrinsic(intr.width,intr.height ,intr.fx,intr.fy,intr.ppx,intr.ppy)
-intrinsic=o3d.camera.PinholeCameraIntrinsic(intr.width,intr.height ,317.9628,320.223,216.6219,114.8350)
-intrinsic=o3d.camera.PinholeCameraIntrinsic(intr.width,intr.height ,976.23415007,980.51695051, 695.12887163,226.97863859)
+mtx=np.load("Calibration__Data\\intrinicmat.npy")
 
 rs.start_capture(True)  # true: start recording with capture  
 im_rgbd = rs.capture_frame(True, True)  # wait for frames and align the
 img=np.asarray(im_rgbd.color)
-mtx=(intrinsic.intrinsic_matrix)
 n=np.array([])
 
 def moveIngremental(begin, mode, i):
@@ -73,7 +72,7 @@ def CameraPose(img,mtx):
 #solvepnp from chessboard
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
     objp = np.zeros((9*7,3), np.float32)
-    objp[:,:2] = np.mgrid[0:7,0:9].T.reshape(-1,2)*0.02
+    objp[:,:2] = np.mgrid[0:7,0:9].T.reshape(-1,2)*0.021
 
     gray = cv2.cvtColor(img,cv2.COLOR_RGB2GRAY)
     ret, corners = cv2.findChessboardCorners(gray, (7,9),None)
@@ -155,7 +154,7 @@ T[2, 3]=t[2]
 
 
 print(T)
-np.save("CameraCalib.npy",T)
+np.save("Calibration__Data\\HandEyeTransformation",T)
 
 rob.stop()
 rob.close()
