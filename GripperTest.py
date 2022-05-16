@@ -187,7 +187,7 @@ def testInput():
 
 def testMovements():
     data=[]
-    pickle_file = "C:\\data_for_learning\\poseList.pickle" ### Write path for the full_shape_val_data.pkl file ###
+    pickle_file = "poseList.pickle" ### Write path for the full_shape_val_data.pkl file ###
     with open(pickle_file, 'rb') as f:
         data = pickle.load(f)
         print(data)

@@ -28,7 +28,7 @@ ori = rob.get_orientation()
 with open("CameraSetup.json") as cf:
     rs_cfg = o3d.t.io.RealSenseSensorConfig(json.load(cf))
 
-pickle_file = "C:\\data_for_learning\\poseList.pickle" ### Write path for the poseList.pickle file ###
+pickle_file = "poseList.pickle" ### Write path for the poseList.pickle file ###
 with open(pickle_file, 'rb') as f:
     data = pickle.load(f)
 
