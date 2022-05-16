@@ -19,6 +19,7 @@ while True:
         rob.stop()
     else:
         break
+
 a=0.4
 v=0.2
 ori = rob.get_orientation()

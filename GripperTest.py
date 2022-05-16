@@ -186,21 +186,35 @@ def testInput():
 
 
 def testMovements():
-    data=[]
     pickle_file = "poseList.pickle" ### Write path for the full_shape_val_data.pkl file ###
     with open(pickle_file, 'rb') as f:
         data = pickle.load(f)
         print(data)
-        i=0
+    i=0
     while(i < len(data)):
         print(i)
         rob.movej(data[i],a,v)
         i+=1
+
+def increasePickle():
+    pickle_file = "poseList.pickle" ### Write path for the full_shape_val_data.pkl file ###
+    with open(pickle_file, 'rb') as f:
+        data = pickle.load(f)
+    for i in range(10):
+        rob.set_freedrive(1, 60)
+        input()
+        data.append(rob.getj())
+        print("Data is now:", len(data), "entries long")
+    pickle_out = open("poseList.pickle","wb")
+    pickle.dump(data, pickle_out)
+    pickle_out.close()
+
 #tryThis()
 #MoveBack()
 #whileTest()
 #goFreedrive()
 #testRot()
 #testInput()
-testMovements()
+#testMovements()
+increasePickle()
 rob.stop()
