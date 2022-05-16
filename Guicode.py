@@ -1,7 +1,6 @@
 #from contextlib import closing
 #import p6
 import json
-from unittest.mock import sentinel
 from cv2 import cvtColor
 import pyrealsense2 as rs
 #import time
@@ -42,7 +41,7 @@ intr = profile.as_video_stream_profile().get_intrinsics() # Downcast to video_st
 def Rotation(rot,iteration,resulution):
     Circle=np.linspace(0, 2*np.pi, resulution)
     
-    angle=rot-Circle[0]
+    angle=Circle[0]
     
     #if angle>2*np.pi:  
       #  angle=angle-2*np.pi
@@ -84,12 +83,13 @@ def grasp_Positions(pcd,aff):
 
     pcd_ = pcd.select_by_index(position)
     pcd_.paint_uniform_color([0,0,0])
-    for i in range(len(pcd_.points)):
+    #for i in range(len(pcd_.points)):
+    for i in range(1):
         [k, idx, _] = pcd_tree.search_radius_vector_3d((pcd_.points)[i], 0.007*factor)
         pcd2 = pcd.select_by_index(idx)
 
-        #np.asarray(pcd.colors)[idx[1:], :] = [0, 0, 1]
-        #o3d.visualization.draw_geometries([pcd])
+        np.asarray(pcd.colors)[idx[1:], :] = [0, 0, 1]
+        o3d.visualization.draw_geometries([pcd])
 
         cov_m=np.cov(np.asarray(pcd2.points).transpose())
         cov_m[np.isnan(cov_m)] = 0
@@ -97,9 +97,11 @@ def grasp_Positions(pcd,aff):
         k1k2=([S[0],S[1]])
         m_curv=([(S[0]+S[1]/2)])
         g_curv=([(S[0]*S[1]/2)])
-        T[0, 3]=(np.asarray(pcd_.points)[:,0])
-        T[1, 3]=(np.asarray(pcd_.points)[:,1])
-        T[2, 3]=(np.asarray(pcd_.points)[:,2])/1000
+        T[0, 3]=(np.asarray(pcd_.points)[i,0])
+        T[1, 3]=(np.asarray(pcd_.points)[i,1])
+        T[2, 3]=(np.asarray(pcd_.points)[i,2])/100
+
+        print("point",T[0, 3],T[1, 3],T[2, 3])
         R,_=cv2.Rodrigues(PfLEO_OBB.R)
 
         for r in range(1):
@@ -109,17 +111,16 @@ def grasp_Positions(pcd,aff):
                     print("rot: ",Rot_xyz)
                     T[:3, :3],_=cv2.Rodrigues(Rot_xyz)
                     rpy,_=cv2.Rodrigues(T[:3, :3])
+                    T[:3, :3]=np.eye(3,3)
                     print( T[:3, :3])
                     x=np.concatenate(([T[0, 3]/np.median(pcd_.points[0],axis=0),T[1, 3]/np.median(pcd_.points[0],axis=0),T[2, 3]/np.median(pcd_.points[0],axis=0)],R[0]-rpy[0],R[1]-rpy[1],R[2]-rpy[2],(pcd_.colors)[i],
                     k1k2,m_curv,g_curv))
                     
                     if len(X)==0:
-                        T[:3, :3]=np.zeros((3,3))
                         X=np.transpose(np.expand_dims(x,axis=1))
                         Poses=[T]
                         print("100", np.shape(np.array(Poses)))
                     else:
-                        T[:3, :3]=np.zeros((3,3))
                         X=np.concatenate((X,np.transpose(np.expand_dims(x,axis=1))),axis=0)
                         Poses=np.concatenate((Poses,[T]),axis=0)
 
@@ -273,7 +274,6 @@ def run():
                                 stencil2 = np.zeros(((depth.shape))).astype(depth.dtype)
                                 result_img = cv2.bitwise_and(ori, stencil)
                                 #cv2.imshow("img",result_img)
-                                print(np.shape(depth.reshape(720, 1280)),np.shape(result_img))
                                 #cv2.waitKey(0)
                                 foo_=(cv2.cvtColor(result_img,cv2.COLOR_RGB2GRAY))
                                 print(type(foo_), np.shape(foo_))
@@ -305,20 +305,17 @@ def run():
                             i=i+1
         except StopIteration: pass
 
-def calculateT2B(world2camMat, inverse = False):
-    cam2gripperMat = np.load('CameraCalib.npy')
+def calculateT2B(world2camMat):
+    cam2gripperMat = np.load("Calibration__Data\\HandEyeTransformation.npy")
+    print(cam2gripperMat)
+    
     gripper2baseMat = rob.get_pose()
-    #base2gripperMat = gripper2baseMat.get_inverse()
 
     gripper2baseMat = gripper2baseMat.get_matrix()
-    #base2gripperMat = base2gripperMat.get_matrix()
-    if inverse == False:
-        world2base = world2camMat * cam2gripperMat * gripper2baseMat
 
+    
+    world2base = (gripper2baseMat) * cam2gripperMat * (world2camMat)
 
-
-    else:
-        world2base = gripper2baseMat * cam2gripperMat * world2camMat
     return world2base
 
 
@@ -328,9 +325,12 @@ while True:
     color=o3d.geometry.Image((color))
     depth=o3d.geometry.Image((depth))
     #intrinsic=o3d.camera.PinholeCameraIntrinsic(intr.width,intr.height ,317.9628,320.223,216.6219,114.8350)
-    intrinsic=o3d.camera.PinholeCameraIntrinsic(intr.width,intr.height ,intr.fx,intr.fy,intr.ppx,intr.ppy)
-    intrinsic=o3d.camera.PinholeCameraIntrinsic(intr.width,intr.height ,976.23415007,980.51695051, 695.12887163,226.97863859)
-
+    #intrinsic=o3d.camera.PinholeCameraIntrinsic(intr.width,intr.height ,intr.fx,intr.fy,intr.ppx,intr.ppy)
+    #intrinsic=o3d.camera.PinholeCameraIntrinsic(intr.width,intr.height ,976.23415007,980.51695051, 695.12887163,226.97863859)
+    mtx=np.load("Calibration__Data\\intrinicmat.npy")
+    intrinsic=o3d.camera.PinholeCameraIntrinsic(640,480 ,mtx[0][0],mtx[1][1],mtx[0][2],mtx[1][2])
+    print("mtx here",mtx)
+    print(mtx[0][0],mtx[1][1],mtx[0][2],mtx[1][2])
 
     rgbd = o3d.geometry.RGBDImage.create_from_color_and_depth(color, depth,convert_rgb_to_intensity=False)
     pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd,intrinsic)
@@ -344,20 +344,15 @@ while True:
     pcd.paint_uniform_color([0, 0, 0])
 
     T,X,pcd_=grasp_Positions(pcd,aff)
-    print("    qqqq   ")
 
  
     
     print("    matrix   ")
-    R,_=cv2.Rodrigues(calculateT2B(T[0])[:3, :3])
-    print(R,calculateT2B(T[0])[0, 3]*1000,calculateT2B(T[0])[1, 3]*1000,calculateT2B(T[0])[2, 3]*1000)
+    print("\n\n\n\n",calculateT2B(T[0], inverse = False),"\n\n\n\n\n")
 
-    print("other method")
-    R,_=cv2.Rodrigues(calculateT2B(T[0], inverse = True)[:3, :3])
-    print(R,calculateT2B(T[0], inverse = True)[0, 3]*1000,calculateT2B(T[0], inverse = True)[1, 3]*1000,calculateT2B(T[0], inverse = True)[2, 3]*1000)
-    
 
-    #pcd.colors=o3d.utility.Vector3dVector(np.concatenate((aff,np.asarray(np.asarray(pcd.colors)[:, :1]),np.asarray(np.asarray(pcd.colors)[:, 1:2])),axis=1))
+
+  
 
 
 
