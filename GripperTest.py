@@ -2,6 +2,7 @@ import sys
 import urx
 import time
 import numpy as np
+import pickle
 import math
 import math3d as m3d
 
@@ -12,7 +13,7 @@ startingPose = rob.get_pose()
 print("Starting Pose tcp pose is: ", startingPose)
 
 
-print("current orientation is: ", startingPose.get_orient())
+#print("current orientation is: ", startingPose.get_orient())
 
 
 #rob.movej((0, -math.pi/3, math.pi/3, 0, math.pi/2, math.pi/2), a, v, wait=True, relative=False)
@@ -141,9 +142,65 @@ def whileTest():
 
         i=i+1
         #time.sleep(0.4)
+def goFreedrive():
+    while(True):
+        rob.set_freedrive(1)
+        time.sleep(40)
 
+def testTCP():
+    mytcp = m3d.Transform()
+    mytcp.pos = (-0.4, -0.4, 0.20)
+    mytcp.orient.rotate_xb(np.pi)
+    rob.set_pose(mytcp,a,v,wait = True, command = 'movej')
+    time.sleep(1)
+    for i in range(8):
+        mytcp.orient.rotate_zb(np.pi/20)
+        rob.set_pose(mytcp,a,v,wait = True, command = 'movej')
+        print(rob.get_pos())
+        time.sleep(1)
+    rob.back(-0.20)
+    print(rob.get_pos())
+    time.sleep(1)
+    rob.movel((-0.4, -0.4, 0, np.pi, 0, 0), a, v)
+    print(rob.get_pos())
+
+def testRot():
+    mytcp = m3d.Transform()
+    mytcp.pos = (-0.5, -0.5, -0.055)
+    mytcp.orient.rotate_xb(np.pi)
+    
+    rob.set_pose(mytcp,a,v,wait = True, command = 'movej')
+    print("current orientation is: ", rob.get_orientation())
+
+
+def testInput():
+    pose_list = []
+    for i in range(20):
+        rob.set_freedrive(1, 60)
+        input()
+        pose_list.append(rob.getj())
+        print(i)
+    pickle_out = open("C:\\data_for_learning\\poseList.pickle","wb")
+    pickle.dump(pose_list, pickle_out)
+    pickle_out.close()
+
+
+def testMovements():
+    data=[]
+    pickle_file = "C:\\data_for_learning\\poseList.pickle" ### Write path for the full_shape_val_data.pkl file ###
+    with open(pickle_file, 'rb') as f:
+        data = pickle.load(f)
+        print(data)
+        i=0
+    while(i < len(data)):
+        print(i)
+        rob.movej(data[i],a,v)
+        i+=1
 #tryThis()
 #MoveBack()
-whileTest()
-
+#whileTest()
+#goFreedrive()
+#testRot()
+#testInput()
+testMovements()
 rob.stop()

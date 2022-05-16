@@ -5,6 +5,7 @@ import numpy as np
 import open3d as o3d
 import json
 import pyrealsense2 as rs
+import pickle
 import time
 import sys
 import urx
@@ -26,6 +27,11 @@ ori = rob.get_orientation()
 
 with open("CameraSetup.json") as cf:
     rs_cfg = o3d.t.io.RealSenseSensorConfig(json.load(cf))
+
+pickle_file = "C:\\data_for_learning\\poseList.pickle" ### Write path for the poseList.pickle file ###
+with open(pickle_file, 'rb') as f:
+    data = pickle.load(f)
+
 ##Startting camera
 pipeline = rs.pipeline()
 cfg = pipeline.start() # Start pipeline and get the configuration it found
@@ -40,35 +46,7 @@ im_rgbd = rs.capture_frame(True, True)  # wait for frames and align the
 img=np.asarray(im_rgbd.color)
 n=np.array([])
 
-def moveIngremental(begin, mode, i):
-    print("moving robot")
-    if mode == 0 and begin:
-        rob.movej([0.7853862047195435, -1.515883747731344, 2.183744430541992, 0.028925776481628418, 1.7645397186279297, 1.702071189880371], a, v, wait=True, relative=False)
-    elif mode == 0:
-        rob.movel((0, 0, 0.05, np.pi/150, -np.pi/150, 0), a, v, wait=True, relative=True)
-    elif mode == 1 and begin:
-        rob.movej([0.11325842142105103, -0.38410789171327764, 0.6964402198791504, 1.9883853197097778, 0.7105001211166382, 0.6198690533638], a, v, wait=True, relative=False)
-    elif mode == 1:
-        rob.movel((0.005, -0.005, 0, np.pi/40, np.pi/40, 0), a, v, wait=True, relative=True)
-    elif mode == 2 and begin:
-        mytcp = m3d.Transform()
-        mytcp.pos = (-0.46610, -0.52469, 0.09467)
-        mytcp.orient = [[-0.39640639, -0.70488675, -0.58821479],[-0.4065947 ,  0.70923652, -0.57590304],[ 0.82312983,  0.01087337, -0.56774911]]
-        rob.set_pose(mytcp,a,v,wait = True, command = 'movej')
-    elif mode == 2:
-        rob.back(0.05, a, v)
-    elif mode == 3:
-        rob.movel((-0.15, 0.15, 0, 0, 0, np.pi/20), a, v, wait=True, relative=True)
-    elif mode == 4 and begin:
-        mytcp = m3d.Transform()
-        mytcp.pos = rob.get_pos()
-        mytcp.orient = [[ 0.06740949,  0.99326777,  0.09420771],[ 0.38316714,  0.06140949, -0.9216354 ],[-0.92121599,  0.09822428, -0.37644799]]
-        rob.set_pose(mytcp,a,v,wait = True, command = 'movej')
-        rob.back(-0.15, a, v)
-    else:
-        rob.movel((0.15, -0.15, 0, 0, 0, -np.pi/18), a, v, wait=True, relative=True)
 
-    time.sleep(2)
 def rot_params_rv(rvecs):
     from math import pi,atan2,asin
     R = cv2.Rodrigues(rvecs)[0]
@@ -106,22 +84,10 @@ R_target2cam=[]
 t_target2cam=[]
 
 i=0
-while (i<54-10):
-    if (i < 18):
-        mode = 0
-    elif (i < 35):
-        mode = 1
-    elif (i < 40):
-        mode = 2
-    elif  (i < 45):
-        mode = 3
-    else:
-        mode = 4
-    if (i==0 or i==18 or i==35 or i == 45):
-        moveIngremental(True, mode, i)
-    else:
-        moveIngremental(False, mode, i-18)
-   
+while (i<len(data)):
+    
+    rob.movej(data[i],a,v)
+    time.sleep(2)
     im_rgbd = rs.capture_frame(True, True)  # wait for frames and align the
     img=np.asarray(im_rgbd.color)
     time.sleep(2)
