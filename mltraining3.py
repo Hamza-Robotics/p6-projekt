@@ -45,11 +45,11 @@ def SVD_Principal_Curvature(Pointcloud,radius):
     return np.concatenate((np.asarray(k1k2), np.asarray(m_curv), np.asarray(g_curv)),axis=1)
 
 
-for i in range(len(objectlist)):
+for i in range(3):
 #for i in range(10):
     print(i/(len(objectlist)))
     Aff_v1=objectlist[i]['partial']['view_2']['label']['grasp']
-
+    xyz=np.asarray(objectlist[i]['partial']['view_2']['coordinate'])    
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector((xyz))
     np_colors=np.zeros((len(pcd.points),1))
