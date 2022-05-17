@@ -71,6 +71,10 @@ for i in range(len(objectlist)):
         begin=time.time()
         print("pints:",np.shape(np.asarray(pcd.points)))
         print("len:  ", len(pcd.points), "another",np.shape(pcd.points)[0])
+
+
+
+
         aff=reg.predict(fph)
         timeittook=time.time()-begin
         #print("aff:",np.shape(aff))
@@ -80,6 +84,13 @@ for i in range(len(objectlist)):
         var=sklearn.metrics.explained_variance_score(Aff_g,aff)
         mAE=sklearn.metrics.mean_absolute_error(Aff_g, aff)
         pe=sklearn.metrics.mean_absolute_percentage_error(Aff_g,aff)
+        
+        Var.append(var)
+        MSE.append(mSE)
+        R2.append(r2)
+        MAE.append(mAE)
+        Time.append(timeittook)
+        PE.append(pe)
 
         maxaff=np.argmax(aff)
 
@@ -98,12 +109,6 @@ for i in range(len(objectlist)):
 
 
 
-        Var.append(var)
-        MSE.append(mSE)
-        R2.append(r2)
-        MAE.append(mAE)
-        Time.append(timeittook)
-        PE.append(pe)
 
 
 

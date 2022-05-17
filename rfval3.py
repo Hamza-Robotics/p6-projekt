@@ -12,7 +12,7 @@ import random
 
 
 print("Pickle learner")
-pickle_file = "C:\\data_for_learning\\RegressionGrasp2.pickle" ### Write path for the full_shape_val_data.pkl file ###
+pickle_file = "C:\\data_for_learning\\RegressionRF.pickle" ### Write path for the full_shape_val_data.pkl file ###
 with open(pickle_file, 'rb') as f:
     reg = pickle.load(f)        
 print("pickle Learned")
@@ -24,15 +24,15 @@ def Rotation(rot,iteration,resulution):
     Circle=np.linspace(0, 2*np.pi, resulution)
     
     angle=rot-Circle[iteration]
-
-    if angle>2*np.pi:  
-        angle=angle-2*np.pi
-        return angle
-    if angle<0:
-        angle=angle+2*np.pi
-        return angle
-    else:
-        return angle
+    
+    #if angle>2*np.pi:  
+      #  angle=angle-2*np.pi
+     #   return angle
+    #if angle<0:
+     #   angle=angle+2*np.pi
+    #    return angle
+   # else:
+    return angle
 
 def CenterOfPCD(PCD):
     m_xyz=np.mean(PCD,axis=0)
@@ -58,10 +58,8 @@ def grasp_Positions(pcd,aff):
     mesh = o3d.geometry.TriangleMesh.create_coordinate_frame()
     T = np.eye(4)
     T[:3, :3]= PfLEO_OBB.R
-    poses=[]
     X=np.asarray([])
-
-    
+    Poses=np.asarray([])
 
     pcd_tree = o3d.geometry.KDTreeFlann(pcd)
 
@@ -80,32 +78,33 @@ def grasp_Positions(pcd,aff):
         k1k2=([S[0],S[1]])
         m_curv=([(S[0]+S[1]/2)])
         g_curv=([(S[0]*S[1]/2)])
-        
-        for r in range(8):
-            for p in range(8):
-                for y in range(8):
-                    T[0, 3]=np.asarray(pcd_.points)[i][0]
-                    T[1, 3]=np.asarray(pcd_.points)[i][1]
-                    T[2, 3]=np.asanyarray(pcd_.points)[i][2]
-                    R,_=cv2.Rodrigues(PfLEO_OBB.R)
-                    Rot_xyz=(np.array([[Rotation(R[0],r,10),Rotation(R[1],p,10),Rotation(R[2],y,10)]]))
-                    T[:3, :3],_=cv2.Rodrigues(Rot_xyz)
-                    print(T[:3, :3])
-                    rpy,_=cv2.Rodrigues(T[:3, :3])
+        T[0, 3]=np.asarray(pcd_.points)[i][0]
+        T[1, 3]=np.asarray(pcd_.points)[i][1]
+        T[2, 3]=np.asarray(pcd_.points)[i][2]
+        R,_=cv2.Rodrigues(PfLEO_OBB.R)
 
-                    
+        for r in range(1):
+            for p in range(1):
+                for y in range(1):
+                    Rot_xyz=(np.array([[Rotation(R[0],r,3),Rotation(R[1],p,3),Rotation(R[2],y,3)]]))
+                    print("rot: ",Rot_xyz)
+                    T[:3, :3],_=cv2.Rodrigues(Rot_xyz)
+                    rpy,_=cv2.Rodrigues(T[:3, :3])
+                    print( T[:3, :3])
                     x=np.concatenate(([T[0, 3]/np.median(pcd_.points[0],axis=0),T[1, 3]/np.median(pcd_.points[0],axis=0),T[2, 3]/np.median(pcd_.points[0],axis=0)],R[0]-rpy[0],R[1]-rpy[1],R[2]-rpy[2],(pcd_.colors)[i],
                     k1k2,m_curv,g_curv))
-                    poses.append(T)
-                    if  r==0 and p==0 and y==0 and i==0:
+                    
+                    if len(X)==0:
                         X=np.transpose(np.expand_dims(x,axis=1))
+                        Poses=[T]
+                        print("100", np.shape(np.array(Poses)))
                     else:
                         X=np.concatenate((X,np.transpose(np.expand_dims(x,axis=1))),axis=0)
+                        Poses=np.concatenate((Poses,[T]),axis=0)
 
             #X=np.concatenate( (np.concatenate((X,np.transpose(np.expand_dims(x,axis=1))),axis=1),x_e),axis=0)
 
-
-    return np.asarray(poses), np.asarray(X), pcd_
+    return np.asarray(Poses), np.asarray(X), pcd_
 
 def ColorAffordance(aff,pcd,color):
     np_colors=np.zeros((len(pcd.points),2))
@@ -116,7 +115,7 @@ def ColorAffordance(aff,pcd,color):
     pcd.colors=o3d.utility.Vector3dVector(np_colors)
 
     return pcd
-factor=3.8
+factor=1
 def SVD_Principal_Curvature(Pointcloud,radius):
     k1k2=[]
     m_curv=[]
@@ -170,8 +169,13 @@ for i in range(7):
 
         print("x=[")
         T,X,pcd_=grasp_Positions(pcd,aff)
+        print(np.shape(T))
+
         for j in range(len(T)):
             T_=T[j]
+
+            print(np.shape(T_))
+            T_.reshape(4,4)
             mesh = o3d.geometry.TriangleMesh.create_coordinate_frame()
             mesh_t = copy.deepcopy(mesh).transform(T_)
             mesh_t.scale(0.1, center=mesh_t.get_center())
@@ -181,10 +185,11 @@ for i in range(7):
 
             o3d.visualization.draw_geometries([pcd,mesh_t])
 
-            print((T[j]==T[j+20]),",")
+            print(T[j]==T[j+1])
+            print(T[j],"                           " ,T[j+1])
 
-            print(X[j]==X[j+20])
- 
+
+
 
 
 
