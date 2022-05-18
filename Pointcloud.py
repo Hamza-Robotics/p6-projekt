@@ -18,6 +18,13 @@ from scipy.spatial.transform import Rotation as R
 
 import matplotlib.pyplot as plt
 
+rob = urx.Robot("172.31.1.115")
+print("pose:",rob.get_pose())
+a = 0.4
+v = 0.5
+startingJoint=[0.33082714676856995, -2.0115001837359827, 1.706066608428955, 1.1847649812698364, 1.4761427640914917, 1.2847598791122437]
+rob.movej(startingJoint,a,v)
+
 pickle_file = "C:\\data_for_learning\\DebugState.pickle" ### Write path for the full_shape_val_data.pkl file ###
 print("Pickle learner")
 #pickle_file = "C:\\data_for_learning\\RegressionGrasp2.pickle" ### Write path for the full_shape_val_data.pkl file ###       
@@ -65,9 +72,6 @@ def HomogenousTransformation(pose):
     return Transformation
 
 
-
-rob = urx.Robot("172.31.1.115")
-print("pose:",rob.get_pose())
 
 
 
@@ -119,7 +123,8 @@ def rotationMatrixToEulerAngles(R) :
     return np.array([x, y, z])
 
 def eulerAnglesToRotationMatrix(theta) :
-    
+    #theta=(theta)[0]
+    print(np.shape(theta))
     R_x = np.array([[1,         0,                  0                   ],
                     [0,         np.cos(theta[0]), -np.sin(theta[0]) ],
                     [0,         np.sin(theta[0]), np.cos(theta[0])  ]
@@ -190,7 +195,7 @@ def grasp_Positions(pcd,aff):
         for r in range(1):
             for p in range(1):
                 for y in range(1):
-                    Rot_xyz=(np.array([[Rotation(R[0],r,3),Rotation(R[1],p,3),Rotation(R[2],y,3)]]))
+                    Rot_xyz=(np.array([Rotation(R[0],r,3),Rotation(R[1],p,3),Rotation(R[2],y,3)]))
                     #Rot_xyz=(np.array([R[0],R[1],R[2]]))
 
                     print("rot: ",Rot_xyz)
@@ -218,6 +223,20 @@ def ColorAffordance(aff,pcd,color):
     pcd.colors=o3d.utility.Vector3dVector(np_colors)
 
     return pcd
+
+def ControlGripper(command = 'open'):
+    if (command == 'open'):
+        scriptLocation ='gripperScripts//openg.script'
+        print("open gripper")
+    elif (command == 'close'):
+        scriptLocation ='gripperScripts//closeg.script'
+        print("closing gripper")
+    else:
+        print("Error, unknown command, either input 'open' or 'close'")
+        return
+    with open(scriptLocation, 'r') as script:
+        rob.send_program(script.read())
+        time.sleep(2)
 
 def SVD_Principal_Curvature(Pointcloud,radius,factor):
     k1k2=[]
@@ -274,6 +293,7 @@ Method_Andref=2
 Method_Dadnilist=3
 Method_Horud=4
 Method_Park=5
+
 def calculateT2B(world2camMat,meth):
     if meth==1:
         cam2gripperMat = np.load("Calibration__Data\\HandEyeTransformation.npy")
@@ -309,6 +329,7 @@ def Clustering(pcl,eps,min_points):
 
 time_b=time.time()
 im_rgbd=RemoveBackGround(im_rgbd,1)
+
 for i in np.asanyarray(im_rgbd.depth):
     #print(i)
     pass
@@ -365,8 +386,7 @@ if  (Clus):
     pcd=pointPCD(Clus)
     pcd.paint_uniform_color([1, 0, 0])  
 
-
-
+print("Visualizing full point cloud:")
 o3d.visualization.draw_geometries([pcd,ori])
 
 mean=np.mean(np.asarray(pcd.points),axis=0)
@@ -378,25 +398,32 @@ aff=reg.predict(x)
 aff=np.asarray(aff).reshape((len(pcd.points),1))
 Poses,X,pc=grasp_Positions(pcd,aff)
 
-    
-
-
-B=calculateT2B((Poses[0]),Method_Tsai)
-print(B)
-print(rotationMatrixToEulerAngles(B[:3, :3]))
-
-
-
+for i in range(4):    
+    rob.movej(startingJoint,a,v)
+    print("Attempting new method")
+    B=calculateT2B((Poses[0]),i+1)
+    print(B)
+    print(rotationMatrixToEulerAngles(B[:3, :3]))
+    ControlGripper(command = 'close')
+    mytcp = m3d.Transform()
+    mytcp.pos.x = B[0,3]
+    mytcp.pos.y = B[1,3]
+    mytcp.pos.z = B[2,3]
+    mytcp.orient = rob.get_orientation()
+    try:
+        rob.set_pose(mytcp,a,v,command = 'movej')
+    except:
+        print("could not set pose")
+    ControlGripper(command = 'open')
+    rob.back(-0.1, a, v)
+    ControlGripper(command = 'close')
+    time.sleep(2)
 
 rob.stop()
 rob.close()
 sys.exit()
-
-
  
 if False:
-
-
     x=Extract_Feature(pcd,1/4)
     aff=reg.predict(x)
     aff=np.asarray(aff).reshape((len(pcd.points),1))

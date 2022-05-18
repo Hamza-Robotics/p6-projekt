@@ -199,7 +199,7 @@ for i in range(len(objectlist)):
 
         pcd.colors=o3d.utility.Vector3dVector(np_colors)
 
-        #o3d.visualization.draw_geometries([pcd])
+        o3d.visualization.draw_geometries([pcd])
 
         aff=np.asarray(aff).reshape((len(pcd.points),1))
         mSE=sklearn.metrics.mean_squared_error(Aff_g,aff,squared=False)

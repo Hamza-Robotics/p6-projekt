@@ -25,7 +25,7 @@ print("x=",np.shape(x),"   y;",np.shape(Y))
 
 
 
-Reg=RandomForestRegressor(n_estimators=1, random_state=42,verbose=2,max_depth=1,n_jobs=-1)
+Reg=RandomForestRegressor(n_estimators=100, random_state=42,verbose=2,max_depth=30,n_jobs=-1)
 
 print(np.shape(x),np.shape(y))
 print(np.shape(X),np.shape(Y))

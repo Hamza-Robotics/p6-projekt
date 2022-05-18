@@ -209,6 +209,28 @@ def increasePickle():
     pickle.dump(data, pickle_out)
     pickle_out.close()
 
+
+def testGripperTCP():
+    print("Current tcp pose is: ", rob.get_pose())
+    with open('gripperScripts//closeg.script', 'r') as script:
+        rob.send_program(script.read())
+        time.sleep(2)
+    mytcp = m3d.Transform()
+    mytcp.pos = (-0.5, 0, 0.10)
+    mytcp.orient.rotate_xb(np.pi)
+    rob.set_pose(mytcp,a,v,wait = True, command = 'movej')
+
+    print("Current tcp pose is: ", rob.get_pose())
+    with open('gripperScripts//openg.script', 'r') as script:
+        rob.send_program(script.read())
+        time.sleep(2)
+    rob.set_pose(mytcp,a,v,wait = True, command = 'movej')
+    print("Current tcp pose is: ", rob.get_pose())
+    with open('gripperScripts//closeg.script', 'r') as script:
+        rob.send_program(script.read())
+        time.sleep(2)
+    rob.set_pose(mytcp,a,v,wait = True, command = 'movej')
+
 #tryThis()
 #MoveBack()
 #whileTest()
@@ -216,5 +238,7 @@ def increasePickle():
 #testRot()
 #testInput()
 #testMovements()
-increasePickle()
+#increasePickle()
+#testGripperTCP()
+print(rob.getj())
 rob.stop()
