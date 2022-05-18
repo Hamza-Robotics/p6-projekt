@@ -55,7 +55,9 @@ while(i<50):
 ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
 
 np.save("Calibration__Data\\intrinicmat640xo480.npy",mtx)
+np.save("Calibration__Data\\dist.npy",dist)
 
+print(ret)
 mean_error = 0
 for i in range(len(objpoints)):
     imgpoints2, _ = cv.projectPoints(objpoints[i], rvecs[i], tvecs[i], mtx, dist)

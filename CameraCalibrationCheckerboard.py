@@ -18,7 +18,7 @@ while True:
     else:
         break
 a=0.6
-v=0.2
+v=0.5
 
 with open("CameraSetup.json") as cf:
     rs_cfg = o3d.t.io.RealSenseSensorConfig(json.load(cf))
@@ -53,7 +53,7 @@ pickle_file = "poseList.pickle" ### Write path for the poseList.pickle file ###
 with open(pickle_file, 'rb') as f:
     data = pickle.load(f)
 i=0
-while (i<len(data)):
+while (i<30):
     if i !=100:
         rob.movej(data[i],a,v)
         time.sleep(1)
@@ -75,7 +75,7 @@ while (i<len(data)):
 ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
 
 
-np.save("Calibration__Data\\intrinicmat640xo480.npy",mtx)
+np.save("Calibration__Data\\intrinicmat1280x720.npy",mtx)
 np.save("Calibration__Data\\dist.npy",dist)
 
 print(ret)

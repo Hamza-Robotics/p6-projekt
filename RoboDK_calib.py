@@ -10,6 +10,8 @@ import time
 import sys
 import urx
 import math3d as m3d
+
+
 pipeline = rs.pipeline()
 pipe_profile = pipeline.start()
 frames = pipeline.wait_for_frames()
@@ -49,7 +51,8 @@ def setup():
     rs.start_capture(True)  # true: start recording with capture 
     #mtx=np.load("RealSenseCameraParmas.npy") 
     #mtx=np.load("RealSenseCameraParams\\RealSenseCameraParmas1280x720.npy")
-    mtx=np.load("Calibration__Data\\intrinicmat640xo480.npy")
+    mtx=np.load("Calibration__Data\\intrinicmat1280x720.npy")
+
     return rs,mtx
 rs,mtx=setup()
 
@@ -67,9 +70,9 @@ def rot_params_rv(rvecs):
 
 def CameraPose(img,mtx):
 #solvepnp from chessboard
-    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 3000, 0.000001)
+    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30000000, 0.00000001)
     objp = np.zeros((9*7,3), np.float32)
-    objp[:,:2] = np.mgrid[0:7,0:9].T.reshape(-1,2)*0.0225
+    objp[:,:2] = np.mgrid[0:7,0:9].T.reshape(-1,2)*0.02192
 
     gray = cv2.cvtColor(img,cv2.COLOR_RGB2GRAY)
     ret, corners = cv2.findChessboardCorners(gray, (7,9),None)
@@ -78,7 +81,7 @@ def CameraPose(img,mtx):
     if ret == True:
         corners2 = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
         # Find the rotation and translation vectors.
-        ret,rvecs, tvecs = cv2.solvePnP(objp, corners2, mtx,None,useExtrinsicGuess=False,flags=cv2.SOLVEPNP_ITERATIVE)
+        ret,rvecs, tvecs = cv2.solvePnP(objp, corners2, mtx,Dist,useExtrinsicGuess=False,flags=cv2.SOLVEPNP_ITERATIVE)
 
         R,_=cv2.Rodrigues(rvecs)
 
@@ -92,10 +95,11 @@ R_target2cam=[]
 t_target2cam=[]
 
 i=0
-l=1
+l=0
+
+Dist=np.load("Calibration__Data\\dist.npy")
 while (i<(30)):
     #if i not in [24,25,26,27]:
-    print(i)
     rob.movej(data[i],a,v)
     time.sleep(2)
     im_rgbd = rs.capture_frame(True, True)  # wait for frames and align the
@@ -117,10 +121,11 @@ while (i<(30)):
 
     if ret==True:
         print(i,l)
+        print(np.linalg.norm(tvec))
         l=1+l
         r_inv=np.linalg.inv(rot)
-        R_gripper2base.append(r_inv)
-        t_gripper2base.append(-r_inv*trans)
+        R_gripper2base.append(rot)
+        t_gripper2base.append(trans)
         R_target2cam.append(rvec)
         t_target2cam.append(tvec)
 
@@ -194,7 +199,7 @@ print("\n\n")
 np.save("Calibration__Data\\HandEyeTransformation_HORAUD",T)
 
 
-R,t=cv2.calibrateHandEye(R_gripper2base,t_gripper2base,R_target2cam,t_target2cam,method= cv2.CALIB_HAND_EYE_HORAUD)
+R,t=cv2.calibrateHandEye(R_gripper2base,t_gripper2base,R_target2cam,t_target2cam,method= cv2.CALIB_HAND_EYE_DANIILIDIS)
 T = np.eye(4)
 T[:3, :3]= R
 T[0, 3]=t[0]

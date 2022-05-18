@@ -1,48 +1,102 @@
 import cv2
+from cv2 import waitKey
 import numpy as np
-from asyncio.windows_events import NULL
+import open3d as o3d
+import json
+import pyrealsense2 as rs
+import time
+import sys
+
+with open("CameraSetup.json") as cf:
+    rs_cfg = o3d.t.io.RealSenseSensorConfig(json.load(cf))
+##Startting camera
+pipeline = rs.pipeline()
+cfg = pipeline.start() # Start pipeline and get the configuration it found
+profile = cfg.get_stream(rs.stream.depth) # Fetch stream profile for depth stream
+intr = profile.as_video_stream_profile().get_intrinsics() # Downcast to video_stream_profile and fetch intrinsics
+rs = o3d.t.io.RealSenseSensor()
+rs.init_sensor(rs_cfg, 0)
+#intrinsic=o3d.camera.PinholeCameraIntrinsic(intr.width,intr.height ,intr.fx,intr.fy,intr.ppx,intr.ppy)
+#intrinsic=o3d.camera.PinholeCameraIntrinsic(intr.width,intr.height ,317.9628,320.223,216.6219,114.8350)
+#intrinsic=o3d.camera.PinholeCameraIntrinsic(intr.width,intr.height ,976.23415007,980.51695051, 695.12887163,226.97863859)
+
+rs.start_capture(True)  # true: start recording with capture  
+im_rgbd = rs.capture_frame(True, True)  # wait for frames and align the
+img=np.asarray(im_rgbd.color)
+n=np.array([])
+
+mtx=np.load("Calibration__Data\\intrinicmat.npy")
+
+def CameraPose(img,mtx):
+#solvepnp from chessboard
+    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+    objp = np.zeros((9*7,3), np.float32)
+    objp[:,:2] = np.mgrid[0:7,0:9].T.reshape(-1,2)*0.02
+
+    gray = cv2.cvtColor(img,cv2.COLOR_RGB2GRAY)
+    ret, corners = cv2.findChessboardCorners(gray, (7,9),None)
+    #solvepnp with factory calibration
+
+    if ret == True:
+        corners2 = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
+        # Find the rotation and translation vectors.
+        ret,rvecs, tvecs = cv2.solvePnP(objp, corners2, mtx,None)
 
 
-img=cv2.imread('img2.png')
+        return ret, rvecs, tvecs
+    else:
+        return False, [],[]
 
-mtx=np.asarray([[420.12387085,0.,421.87664795],[0.,420.12387085,241.06109619],[0.,0.,1.]])
+R_gripper2base=[]
+t_gripper2base=[]
+R_target2cam=[]
+t_target2cam=[]
 
-mtx1=np.asarray([[231.7225,0,161.8237],[0,229.9110,80.4734],[0,0,1.0000]])
+i=0
+while (True):
 
-criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
-objp = np.zeros((9*7,3), np.float32)
+    im_rgbd = rs.capture_frame(True, True)  # wait for frames and align the
+    img=np.asarray(im_rgbd.color)
 
-objp[:,:2] = np.mgrid[0:7,0:9].T.reshape(-1,2)
+    ret,rvec,tvec=CameraPose(img,mtx)
+    #pose=np.asarray()
+    #rot=pose[0:3,0:3]
+    #trans=np.reshape(pose[0:3,3],(3,1))
 
-gray = cv2.cvtColor(img,cv2.COLOR_RGB2GRAY)
 
-ret, corners = cv2.findChessboardCorners(gray, (7,9),None)
+    if ret==True:
+   
+        R_target2cam.append(rvec)
+        t_target2cam.append(tvec)
+        print(rvec)
+        print(np.linalg.norm(tvec))
+    i=i+1
+    #time.sleep(0.4)
 
-#solvepnp with factory calibration
 
-if ret == True:
+R_gripper2base=  np.asarray(R_gripper2base)
+t_gripper2base=  np.asarray(t_gripper2base)
+R_target2cam=  np.asarray(R_target2cam)
+t_target2cam=  np.asarray(t_target2cam)
 
-    corners2 = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
+#print(type(R_gripper2base),R_gripper2base)
+#print(type(t_gripper2base),t_gripper2base)
+#print(type(t_target2cam),t_target2cam)
+#print(type(R_target2cam),R_target2cam)
+#print("shape",np.shape(R_gripper2base))
+#print("shape",np.shape(t_gripper2base))
 
-    # Find the rotation and translation vectors.
+#print(R_gripper2base)
+R,t=cv2.calibrateHandEye(R_gripper2base,t_gripper2base,R_target2cam,t_target2cam)
+T = np.eye(4)
+print(t)
+T[:3, :3]= R
+T[0, 3]=t[0]
+T[1, 3]=t[1]
+T[2, 3]=t[2]
 
-    ret,rvecs, tvecs = cv2.solvePnP(objp, corners2, mtx,NULL)
 
-    print("norm:\n",np.linalg.norm(tvecs))
+print(T)
+np.save("CameraCalib.npy",T)
 
-    print("vector:\n",tvecs)
-
-#solvepnp with matlab calibration
-
-if ret == True:
-
-    corners2 = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
-
-    # Find the rotation and translation vectors.
-
-    ret,rvecs, tvecs = cv2.solvePnP(objp, corners2, mtx1,NULL)
-
-    print("norm:\n",np.linalg.norm(tvecs))
-
-    print("vector:\n",tvecs)
