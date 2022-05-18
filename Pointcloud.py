@@ -24,6 +24,8 @@ a = 0.4
 v = 0.5
 startingJoint=[0.33082714676856995, -2.0115001837359827, 1.706066608428955, 1.1847649812698364, 1.4761427640914917, 1.2847598791122437]
 rob.movej(startingJoint,a,v)
+rob.back(-0.3, a, v)
+
 
 pickle_file = "C:\\data_for_learning\\DebugState.pickle" ### Write path for the full_shape_val_data.pkl file ###
 print("Pickle learner")
@@ -38,6 +40,7 @@ with open("CameraSetup.json") as cf:
 
 rs = o3d.t.io.RealSenseSensor()
 rs.init_sensor(rs_cfg, 0)
+
 rs.start_capture(True)  # true: start recording with capture  
 mtx=np.load("RealSenseCameraParams\\RealSenseCameraParmas640x480.npy")
 intrinsic=o3d.camera.PinholeCameraIntrinsic(640,480 ,mtx[0][0],mtx[1][1],mtx[0][2],mtx[1][2])
@@ -46,7 +49,24 @@ o3d.t.io.RealSenseSensor.list_devices()
 
 im_rgbd = rs.capture_frame(True, True)  # wait for frames and align the
 
-
+def CalcCam2ToolMatrix():
+    Cam2Base = np.array([[-1, 0, 0,-0.750],
+                         [ 0, 1, 0,-0.750],
+                         [ 0, 0,-1, 0.206],
+                         [ 0, 0, 0, 1.000]])
+    Gripper2Base = np.array([[-0.99614576,  0.0281356 , -0.08307836, -0.69665],
+                             [ 0.02663937,  0.99946331,  0.01906395, -0.71217],
+                             [ 0.08357015,  0.01677732, -0.99636065,  0.04994],
+                             [ 0,           0,           0,           1      ]])
+    gripper2cam0 = np.dot(np.linalg.inv(Cam2Base),     Gripper2Base)
+    gripper2cam1 = np.dot(np.linalg.inv(Gripper2Base), Cam2Base    ) 
+    gripper2cam2 = np.dot(Gripper2Base, np.linalg.inv(Cam2Base)    ) 
+    gripper2cam3 = np.dot(Cam2Base,     np.linalg.inv(Gripper2Base))
+    #print(gripper2cam0)
+    #print(gripper2cam1)
+    #print(gripper2cam2)
+    #print(gripper2cam3)
+    return gripper2cam0, gripper2cam1, gripper2cam2, gripper2cam3
 
 
 def HomogenousTransformation(pose):
@@ -72,9 +92,6 @@ def HomogenousTransformation(pose):
     return Transformation
 
 
-
-
-
 def RemoveBackGround(rgbd,d):
     a=np.asarray(im_rgbd.depth)
 
@@ -85,6 +102,7 @@ def RemoveBackGround(rgbd,d):
     Im_Rgbd=o3d.geometry.RGBDImage.create_from_color_and_depth(o3d.geometry.Image(im), o3d.geometry.Image(a),convert_rgb_to_intensity=False)
 
     return Im_Rgbd
+
 
 def Rotation(rot,iteration,resulution):
     Circle=np.linspace(0, np.pi, 4,endpoint=True)
@@ -100,11 +118,13 @@ def Rotation(rot,iteration,resulution):
     else:
         return angle
 
+
 def CenterOfPCD(PCD):
     m_xyz=np.mean(PCD,axis=0)
     L=np.linalg.norm(m_xyz-PCD,axis=1).reshape((len(PCD),1))
     L=(L-min(L))/(max(L)-min(L))
     return L
+
 
 def rotationMatrixToEulerAngles(R) :
     sy = np.sqrt(R[0,0] * R[0,0] +  R[1,0] * R[1,0])
@@ -121,6 +141,7 @@ def rotationMatrixToEulerAngles(R) :
         z = 0
 
     return np.array([x, y, z])
+
 
 def eulerAnglesToRotationMatrix(theta) :
     #theta=(theta)[0]
@@ -143,6 +164,7 @@ def eulerAnglesToRotationMatrix(theta) :
     R = np.dot(R_z, np.dot( R_y, R_x ))
 
     return R
+
 
 def grasp_Positions(pcd,aff):
 
@@ -224,6 +246,7 @@ def ColorAffordance(aff,pcd,color):
 
     return pcd
 
+
 def ControlGripper(command = 'open'):
     if (command == 'open'):
         scriptLocation ='gripperScripts//openg.script'
@@ -236,7 +259,8 @@ def ControlGripper(command = 'open'):
         return
     with open(scriptLocation, 'r') as script:
         rob.send_program(script.read())
-        time.sleep(2)
+        time.sleep(4)
+
 
 def SVD_Principal_Curvature(Pointcloud,radius,factor):
     k1k2=[]
@@ -260,6 +284,7 @@ def SVD_Principal_Curvature(Pointcloud,radius,factor):
 
     return np.concatenate((np.asarray(k1k2), np.asarray(m_curv), np.asarray(g_curv)),axis=1)
 
+
 def Extract_Feature(pcd,factor):
     #Non Normalized distance: 
     L=CenterOfPCD(np.asarray(pcd.points))
@@ -278,6 +303,7 @@ def Extract_Feature(pcd,factor):
 
     return x
 
+
 def ColorAffordance(aff,pcd,color):
     np_colors=np.zeros((len(pcd.points),2))
     np_colors=(np.concatenate((aff,np_colors),axis=1))
@@ -288,11 +314,13 @@ def ColorAffordance(aff,pcd,color):
 
     return pcd
 
+
 Method_Tsai=1
 Method_Andref=2
 Method_Dadnilist=3
 Method_Horud=4
 Method_Park=5
+
 
 def calculateT2B(world2camMat,meth):
     if meth==1:
@@ -306,14 +334,27 @@ def calculateT2B(world2camMat,meth):
     if meth==5:
         cam2gripperMat = np.load("Calibration__Data\\HandEyeTransformation_park.npy")
 
-    
+    meth=2
     gripper2baseMat = rob.get_pose()
 
     gripper2baseMat = gripper2baseMat.get_matrix()
+    cam2gripperMat0, cam2gripperMat1, cam2gripperMat2, cam2gripperMat3 = CalcCam2ToolMatrix()
+    #world2base = (gripper2baseMat) * (cam2gripperMat) * (world2camMat)
 
-    world2base = (gripper2baseMat) * (cam2gripperMat) * (world2camMat)
+    world2base0 = np.dot(gripper2baseMat, np.dot(cam2gripperMat0, world2camMat))
+    world2base1 = np.dot(gripper2baseMat, np.dot(cam2gripperMat1, world2camMat))
+    world2base2 = np.dot(gripper2baseMat, np.dot(cam2gripperMat2, world2camMat))
+    world2base3 = np.dot(gripper2baseMat, np.dot(cam2gripperMat3, world2camMat))
+    if (meth == 0):
+        return world2base0
+    if (meth == 1):
+        return world2base1
+    if (meth == 2):
+        return world2base2
+    if (meth == 3):
+        return world2base3
 
-    return world2base
+
 
 def Clustering(pcl,eps,min_points):
     labels = np.array(
@@ -350,7 +391,7 @@ np.asarray(pcd.colors)[idx[1:], :] = [0, 0, 1]
 o3d.visualization.draw_geometries([pcd  ])
 
 time_b=time.time()
-plane_model, inliers = pcd.segment_plane(distance_threshold=0.004,
+plane_model, inliers = pcd.segment_plane(distance_threshold=0.03,
                                          ransac_n=400,
                                          num_iterations=10000)
 
@@ -379,10 +420,30 @@ def pointPCD(Cluster):
         if msvcrt.kbhit() and msvcrt.getwche() == 's':
             return Cluster[i]
         else:
-            i=i+1               
+            i=i+1             
+def normalizeCluster(Cluster):
+    minX = min(Cluster[:,0])
+    print("minimum x value is:", minX)
+    minY = min(Cluster[:,1])
+    print("minimum y value is:", minY)
+    minZ = min(Cluster[:,2])
+    print("minimum z value is:", minZ)
+
+    for currentPoint in range(len(Cluster)):
+        Cluster[currentPoint,0] -= minX
+        Cluster[currentPoint,1] -= minY
+        Cluster[currentPoint,2] -= minZ
+
+    maxVal = findMax(Cluster)
+    for currentPoint in range(len(Cluster)):
+        Cluster[currentPoint,0] = Cluster[currentPoint,0]/maxVal
+        Cluster[currentPoint,1] = Cluster[currentPoint,1]/maxVal
+        Cluster[currentPoint,2] = Cluster[currentPoint,2]/maxVal
+    return Cluster
+
 
 print(len(Clus))
-if  (Clus):
+if (Clus):
     pcd=pointPCD(Clus)
     pcd.paint_uniform_color([1, 0, 0])  
 
@@ -398,25 +459,37 @@ aff=reg.predict(x)
 aff=np.asarray(aff).reshape((len(pcd.points),1))
 Poses,X,pc=grasp_Positions(pcd,aff)
 
-for i in range(4):    
+for i in range(1):    
     rob.movej(startingJoint,a,v)
     print("Attempting new method")
     B=calculateT2B((Poses[0]),i+1)
     print(B)
     print(rotationMatrixToEulerAngles(B[:3, :3]))
-    ControlGripper(command = 'close')
+    #ControlGripper(command = 'close')
     mytcp = m3d.Transform()
     mytcp.pos.x = B[0,3]
     mytcp.pos.y = B[1,3]
-    mytcp.pos.z = B[2,3]
-    mytcp.orient = rob.get_orientation()
+    if (B[2,3] < 0):
+        mytcp.pos.z = 0
+    else:
+        mytcp.pos.z = B[2,3]
+
+    mytcp.orient.rotate_xb(math.pi/2)
+
+    prePos = mytcp
+    prePos.pos.x += 10
+    prePos.pos.y += 10
     try:
-        rob.set_pose(mytcp,a,v,command = 'movej')
+        rob.set_pose(prePos,a,v,command = 'movej')
     except:
         print("could not set pose")
-    ControlGripper(command = 'open')
-    rob.back(-0.1, a, v)
-    ControlGripper(command = 'close')
+    try:
+        rob.set_pose(mytcp,a,v,command = 'movel')
+    except:
+        print("could not set pose")
+    #ControlGripper(command = 'open')
+    #rob.back(-0.1, a, v)
+    #ControlGripper(command = 'close')
     time.sleep(2)
 
 rob.stop()

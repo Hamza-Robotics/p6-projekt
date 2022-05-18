@@ -5,12 +5,14 @@ import numpy as np
 import pickle
 import math
 import math3d as m3d
+import pyrealsense2 as rs
+import cv2
 
-rob = urx.Robot("172.31.1.115")
+#rob = urx.Robot("172.31.1.115")
 a=0.4
 v=0.5
-startingPose = rob.get_pose()
-print("Starting Pose tcp pose is: ", startingPose)
+#startingPose = rob.get_pose()
+#print("Starting Pose tcp pose is: ", startingPose)
 
 
 #print("current orientation is: ", startingPose.get_orient())
@@ -231,6 +233,29 @@ def testGripperTCP():
         time.sleep(2)
     rob.set_pose(mytcp,a,v,wait = True, command = 'movej')
 
+def CalcCam2ToolMatrix():
+    Cam2Base = np.array([[-1, 0, 0,-0.750],
+                              [ 0, 1, 0,-0.750],
+                              [ 0, 0,-1, 0.206],
+                              [ 0, 0, 0, 1.000]])
+    Gripper2Base = np.array([[-0.99614576,  0.0281356 , -0.08307836, -0.69665],
+                                  [ 0.02663937,  0.99946331,  0.01906395, -0.71217],
+                                  [ 0.08357015,  0.01677732, -0.99636065,  0.04994],
+                                  [ 0,           0,           0,           1      ]])
+    gripper2cam0 = np.dot(np.linalg.inv(Cam2Base),     Gripper2Base)
+    gripper2cam1 = np.dot(np.linalg.inv(Gripper2Base), Cam2Base    ) 
+    gripper2cam2 = np.dot(Gripper2Base, np.linalg.inv(Cam2Base)    ) #This one should be the right one
+    gripper2cam3 = np.dot(Cam2Base,     np.linalg.inv(Gripper2Base))
+    print(gripper2cam0)
+    print(gripper2cam1)
+    print(gripper2cam2)
+    print(gripper2cam3)
+    return gripper2cam0, gripper2cam1, gripper2cam2, gripper2cam3
+
+
+
+
+
 #tryThis()
 #MoveBack()
 #whileTest()
@@ -240,5 +265,6 @@ def testGripperTCP():
 #testMovements()
 #increasePickle()
 #testGripperTCP()
-print(rob.getj())
-rob.stop()
+#print(rob.getj())
+CalcCam2ToolMatrix()
+#rob.stop()
