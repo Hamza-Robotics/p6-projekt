@@ -6,7 +6,11 @@ import pickle
 import math
 import math3d as m3d
 import pyrealsense2 as rs
+import open3d as o3d
 import cv2
+
+o3d.t.io.RealSenseSensor.list_devices()
+
 
 rob = urx.Robot("172.31.1.115")
 a=0.4
@@ -63,7 +67,7 @@ def tryThis():
     mytcp.pos = (-0.4,-0.4,0.2)
     mytcp.orient.rotate_xb(math.pi)
     #mytcp.orient.rotate_yb(math.pi)
-    mytcp.orient.rotate_zb(math.pi/2)
+    #mytcp.orient.rotate_zb(math.pi/2)
     print(mytcp)
     approach = mytcp.get_orient() * m3d.Vector(0,0,-0.1)
     print(approach)
@@ -311,10 +315,13 @@ def move2cam():
 def testRotation():
     mytcp = m3d.Transform()  # create a matrix for our tool tcp
     mytcp.pos = (-0.69665,-0.71217,0.3)
-    #mytcp.orient.rotate_xb(math.pi/2)
-    #mytcp.orient.rotate_yb(-math.pi/2)
-    #mytcp.orient.rotate_zb(math.pi/4)
     mytcp.orient=[[-0.99614576,  0.0281356 , -0.08307836],[0.02663937,  0.99946331,  0.01906395],[0.08357015,  0.01677732, -0.99636065]]
+    #mytcp.orient.rotate_xb(math.pi)
+
+
+    
+    #mytcp.orient.rotate_yb(-math.pi)
+    #mytcp.orient.rotate_zb(math.pi)
     rob.set_pose(mytcp,a,v,wait = True, command = 'movej')
 
 def move2start():
@@ -337,8 +344,8 @@ def move2start():
 #testGripperTCP()
 #print(rob.getj())
 #CalcCam2ToolMatrix()
-#testRotation()
+testRotation()
 #move2cam()
-move2start()
+#move2start()
 #print(rob.getj())
 rob.stop()

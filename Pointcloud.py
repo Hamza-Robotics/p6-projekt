@@ -43,15 +43,15 @@ rs.init_sensor(rs_cfg, 0)
 
 rs.start_capture(True)  # true: start recording with capture  
 mtx=np.load("RealSenseCameraParams\\RealSenseCameraParmas1280x720.npy")
-intrinsic=o3d.camera.PinholeCameraIntrinsic(640,480 ,mtx[0][0],mtx[1][1],mtx[0][2],mtx[1][2])
+intrinsic=o3d.camera.PinholeCameraIntrinsic(1280,720 ,mtx[0][0],mtx[1][1],mtx[0][2],mtx[1][2])
 o3d.t.io.RealSenseSensor.list_devices()
 
 
 im_rgbd = rs.capture_frame(True, True)  # wait for frames and align the
 
 def CalcCam2ToolMatrix():
-    Cam2Base = np.array([[-1, 0, 0,-0.750],
-                         [ 0, 1, 0,-0.750],
+    Cam2Base = np.array([[ 0, 1, 0,-0.750],
+                         [ 1, 0, 0,-0.750],
                          [ 0, 0,-1, 0.131],
                          [ 0, 0, 0, 1.000]])
     Gripper2Base = np.array([[-0.99614576,  0.0281356 , -0.08307836, -0.69665],
@@ -222,8 +222,13 @@ def grasp_Positions(pcd,aff):
 
                     print("rot: ",Rot_xyz)
                     T[:3, :3]=eulerAnglesToRotationMatrix(Rot_xyz)
-                    x=(([T[0, 3]/np.median(pcd_.points[0],axis=0),T[1, 3]/np.median(pcd_.points[0],axis=0),T[2, 3]/np.median(pcd_.points[0],axis=0),R[0]-Rot_xyz[0],R[1]-Rot_xyz[1],R[2]-Rot_xyz[2],(pcd_.colors)[i],
-                    k1k2,m_curv,g_curv]))
+                    x=(([T[0, 3]/np.median(pcd_.points[0],axis=0),
+                         T[1, 3]/np.median(pcd_.points[0],axis=0),
+                         T[2, 3]/np.median(pcd_.points[0],axis=0),
+                         R[0]-Rot_xyz[0],
+                         R[1]-Rot_xyz[1],
+                         R[2]-Rot_xyz[2],
+                         (pcd_.colors)[i], k1k2,m_curv,g_curv]))
                     
                     if len(X)==0:
                         X=np.transpose(np.expand_dims(x,axis=1))
@@ -235,6 +240,20 @@ def grasp_Positions(pcd,aff):
             #X=np.concatenate( (np.concatenate((X,np.transpose(np.expand_dims(x,axis=1))),axis=1),x_e),axis=0)
 
     return np.asarray(Poses), np.asarray(X), pcd_
+
+def grasp_Position1(pcd):
+    lowestZ = 100
+    lowestZpos = 0
+    for i in range(len(pcd)):
+        currentZ = np.array(pcd)[i,2]
+        print(currentZ)
+        if (currentZ < lowestZ):
+            lowestZ = currentZ
+            lowestZpos = i
+    print(np.array(pcd)[lowestZpos])
+    return np.array(pcd)[lowestZpos]
+
+
 
 def ColorAffordance(aff,pcd,color):
     np_colors=np.zeros((len(pcd.points),2))
@@ -458,11 +477,12 @@ x=Extract_Feature(pcd,1/4)
 aff=reg.predict(x)
 aff=np.asarray(aff).reshape((len(pcd.points),1))
 Poses,X,pc=grasp_Positions(pcd,aff)
-
+#Poses = grasp_Position1(pcd.points)
 for i in range(1):    
     rob.movej(startingJoint,a,v)
     print("Attempting new method")
     B=calculateT2B((Poses[0]),i)
+    #B=calculateT2B((Poses),i)
     print(B)
     print(rotationMatrixToEulerAngles(B[:3, :3]))
     #ControlGripper(command = 'close')
@@ -476,14 +496,17 @@ for i in range(1):
 
     mytcp.orient.rotate_yb(-math.pi/2)
     mytcp.orient.rotate_zb(math.pi/4)
-
-    prePos = mytcp
-    #prePos.pos.x += 0.10
-    #prePos.pos.y += 0.10
+    prePos = m3d.Transform()
+    prePos.orient = mytcp.orient
+    prePos.pos.x = mytcp.pos.x + 0.10
+    prePos.pos.y = mytcp.pos.y + 0.10
+    prePos.pos.z = mytcp.pos.z
+    print(prePos)
     try:
         rob.set_pose(prePos,a,v,command = 'movej')
     except:
         print("could not set pose")
+    print(mytcp)
 
     try:
         rob.set_pose(mytcp,a,v,command = 'movel')
