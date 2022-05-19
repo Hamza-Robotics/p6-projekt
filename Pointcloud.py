@@ -22,9 +22,9 @@ rob = urx.Robot("172.31.1.115")
 print("pose:",rob.get_pose())
 a = 0.4
 v = 0.5
-startingJoint=[0.33082714676856995, -2.0115001837359827, 1.706066608428955, 1.1847649812698364, 1.4761427640914917, 1.2847598791122437]
+startingJoint=[0.4976164996623993, -1.8964617888080042, 1.7800350189208984, 0.837715744972229, 1.5187908411026, 1.4695764780044556]
 rob.movej(startingJoint,a,v)
-rob.back(-0.3, a, v)
+#rob.back(-0.2, a, v)
 
 
 pickle_file = "C:\\data_for_learning\\DebugState.pickle" ### Write path for the full_shape_val_data.pkl file ###
@@ -42,7 +42,7 @@ rs = o3d.t.io.RealSenseSensor()
 rs.init_sensor(rs_cfg, 0)
 
 rs.start_capture(True)  # true: start recording with capture  
-mtx=np.load("RealSenseCameraParams\\RealSenseCameraParmas640x480.npy")
+mtx=np.load("RealSenseCameraParams\\RealSenseCameraParmas1280x720.npy")
 intrinsic=o3d.camera.PinholeCameraIntrinsic(640,480 ,mtx[0][0],mtx[1][1],mtx[0][2],mtx[1][2])
 o3d.t.io.RealSenseSensor.list_devices()
 
@@ -52,11 +52,11 @@ im_rgbd = rs.capture_frame(True, True)  # wait for frames and align the
 def CalcCam2ToolMatrix():
     Cam2Base = np.array([[-1, 0, 0,-0.750],
                          [ 0, 1, 0,-0.750],
-                         [ 0, 0,-1, 0.206],
+                         [ 0, 0,-1, 0.131],
                          [ 0, 0, 0, 1.000]])
     Gripper2Base = np.array([[-0.99614576,  0.0281356 , -0.08307836, -0.69665],
                              [ 0.02663937,  0.99946331,  0.01906395, -0.71217],
-                             [ 0.08357015,  0.01677732, -0.99636065,  0.04994],
+                             [ 0.08357015,  0.01677732, -0.99636065,  0.00000],
                              [ 0,           0,           0,           1      ]])
     gripper2cam0 = np.dot(np.linalg.inv(Cam2Base),     Gripper2Base)
     gripper2cam1 = np.dot(np.linalg.inv(Gripper2Base), Cam2Base    ) 
@@ -334,7 +334,7 @@ def calculateT2B(world2camMat,meth):
     if meth==5:
         cam2gripperMat = np.load("Calibration__Data\\HandEyeTransformation_park.npy")
 
-    meth=2
+    meth=1
     gripper2baseMat = rob.get_pose()
 
     gripper2baseMat = gripper2baseMat.get_matrix()
@@ -462,27 +462,29 @@ Poses,X,pc=grasp_Positions(pcd,aff)
 for i in range(1):    
     rob.movej(startingJoint,a,v)
     print("Attempting new method")
-    B=calculateT2B((Poses[0]),i+1)
+    B=calculateT2B((Poses[0]),i)
     print(B)
     print(rotationMatrixToEulerAngles(B[:3, :3]))
     #ControlGripper(command = 'close')
     mytcp = m3d.Transform()
     mytcp.pos.x = B[0,3]
     mytcp.pos.y = B[1,3]
-    if (B[2,3] < 0):
-        mytcp.pos.z = 0
+    if (B[2,3] < 0.05):
+        mytcp.pos.z = 0.05
     else:
         mytcp.pos.z = B[2,3]
 
-    mytcp.orient.rotate_xb(math.pi/2)
+    mytcp.orient.rotate_yb(-math.pi/2)
+    mytcp.orient.rotate_zb(math.pi/4)
 
     prePos = mytcp
-    prePos.pos.x += 10
-    prePos.pos.y += 10
+    #prePos.pos.x += 0.10
+    #prePos.pos.y += 0.10
     try:
         rob.set_pose(prePos,a,v,command = 'movej')
     except:
         print("could not set pose")
+
     try:
         rob.set_pose(mytcp,a,v,command = 'movel')
     except:

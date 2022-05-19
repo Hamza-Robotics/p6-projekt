@@ -8,11 +8,11 @@ import math3d as m3d
 import pyrealsense2 as rs
 import cv2
 
-#rob = urx.Robot("172.31.1.115")
+rob = urx.Robot("172.31.1.115")
 a=0.4
 v=0.5
-#startingPose = rob.get_pose()
-#print("Starting Pose tcp pose is: ", startingPose)
+startingPose = rob.get_pose()
+print("Starting Pose tcp pose is: ", startingPose)
 
 
 #print("current orientation is: ", startingPose.get_orient())
@@ -236,11 +236,11 @@ def testGripperTCP():
 def CalcCam2ToolMatrix():
     Cam2Base = np.array([[-1, 0, 0,-0.750],
                               [ 0, 1, 0,-0.750],
-                              [ 0, 0,-1, 0.206],
+                              [ 0, 0,-1, 0.131],
                               [ 0, 0, 0, 1.000]])
     Gripper2Base = np.array([[-0.99614576,  0.0281356 , -0.08307836, -0.69665],
                                   [ 0.02663937,  0.99946331,  0.01906395, -0.71217],
-                                  [ 0.08357015,  0.01677732, -0.99636065,  0.04994],
+                                  [ 0.08357015,  0.01677732, -0.99636065,  0],
                                   [ 0,           0,           0,           1      ]])
     gripper2cam0 = np.dot(np.linalg.inv(Cam2Base),     Gripper2Base)
     gripper2cam1 = np.dot(np.linalg.inv(Gripper2Base), Cam2Base    ) 
@@ -251,7 +251,77 @@ def CalcCam2ToolMatrix():
     print(gripper2cam2)
     print(gripper2cam3)
     return gripper2cam0, gripper2cam1, gripper2cam2, gripper2cam3
+    
+def move2cam():
+    testRotation()
+    gripper2baseMat = rob.get_pose()
+    mytcp = m3d.Transform()
+    gripper2baseMat = gripper2baseMat.get_matrix()
+    cam2gripperMat0, cam2gripperMat1, cam2gripperMat2, cam2gripperMat3 = CalcCam2ToolMatrix()
+    #world2base = (gripper2baseMat) * (cam2gripperMat) * (world2camMat)
+    print("testing 0")
+    cam2base = np.dot(gripper2baseMat, cam2gripperMat0)
+    mytcp.pos.x = cam2base[0,3]
+    mytcp.pos.y = cam2base[1,3]
+    mytcp.pos.z = cam2base[2,3]
+    mytcp.orient = [[cam2base[0,0],cam2base[0,1],cam2base[0,2]],
+                    [cam2base[1,0],cam2base[1,1],cam2base[1,2]],
+                    [cam2base[2,0],cam2base[2,1],cam2base[2,2]]]
+    rob.set_pose(mytcp,a,v,wait = True, command = 'movej')
+    time.sleep(3)
+    print(rob.get_pose())
+    testRotation()
+    print("testing 1")
+    cam2base = np.dot(gripper2baseMat, cam2gripperMat1)
+    mytcp.pos.x = cam2base[0,3]
+    mytcp.pos.y = cam2base[1,3]
+    mytcp.pos.z = cam2base[2,3]
+    mytcp.orient = [[cam2base[0,0],cam2base[0,1],cam2base[0,2]],
+                    [cam2base[1,0],cam2base[1,1],cam2base[1,2]],
+                    [cam2base[2,0],cam2base[2,1],cam2base[2,2]]]
+    rob.set_pose(mytcp,a,v,wait = True, command = 'movej')
+    time.sleep(3)
+    print(rob.get_pose())
+    testRotation()
+    print("testing 2")
+    cam2base = np.dot(gripper2baseMat, cam2gripperMat2)
+    mytcp.pos.x = cam2base[0,3]
+    mytcp.pos.y = cam2base[1,3]
+    mytcp.pos.z = cam2base[2,3]
+    mytcp.orient = [[cam2base[0,0],cam2base[0,1],cam2base[0,2]],
+                    [cam2base[1,0],cam2base[1,1],cam2base[1,2]],
+                    [cam2base[2,0],cam2base[2,1],cam2base[2,2]]]
+    rob.set_pose(mytcp,a,v,wait = True, command = 'movej')
+    time.sleep(3)
+    print(rob.get_pose())
+    testRotation()
+    print("testing 3")
+    cam2base = np.dot(gripper2baseMat, cam2gripperMat3)
+    mytcp.pos.x = cam2base[0,3]
+    mytcp.pos.y = cam2base[1,3]
+    mytcp.pos.z = cam2base[2,3]
+    mytcp.orient = [[cam2base[0,0],cam2base[0,1],cam2base[0,2]],
+                    [cam2base[1,0],cam2base[1,1],cam2base[1,2]],
+                    [cam2base[2,0],cam2base[2,1],cam2base[2,2]]]
+    rob.set_pose(mytcp,a,v,wait = True, command = 'movej')
+    print(rob.get_pose())
 
+
+
+def testRotation():
+    mytcp = m3d.Transform()  # create a matrix for our tool tcp
+    mytcp.pos = (-0.69665,-0.71217,0.3)
+    #mytcp.orient.rotate_xb(math.pi/2)
+    #mytcp.orient.rotate_yb(-math.pi/2)
+    #mytcp.orient.rotate_zb(math.pi/4)
+    mytcp.orient=[[-0.99614576,  0.0281356 , -0.08307836],[0.02663937,  0.99946331,  0.01906395],[0.08357015,  0.01677732, -0.99636065]]
+    rob.set_pose(mytcp,a,v,wait = True, command = 'movej')
+
+def move2start():
+    #startingJoint=[0.33082714676856995, -2.0115001837359827, 1.706066608428955, 1.1847649812698364, 1.4761427640914917, 1.2847598791122437]
+    startingJoint=[0.4976164996623993, -1.8964617888080042, 1.7800350189208984, 0.837715744972229, 1.5187908411026, 1.4695764780044556]
+    rob.movej(startingJoint,a,v)
+    rob.back(-0.2, a, v)
 
 
 
@@ -266,5 +336,9 @@ def CalcCam2ToolMatrix():
 #increasePickle()
 #testGripperTCP()
 #print(rob.getj())
-CalcCam2ToolMatrix()
-#rob.stop()
+#CalcCam2ToolMatrix()
+#testRotation()
+#move2cam()
+move2start()
+#print(rob.getj())
+rob.stop()
