@@ -172,12 +172,15 @@ def testTCP():
 
 def testRot():
     mytcp = m3d.Transform()
-    mytcp.pos = (-0.5, -0.5, -0.055)
-    mytcp.orient.rotate_xb(np.pi)
+    mytcp.pos = (-0.5, -0.5, 0.00)
+    mytcp.orient.rotate_xb(np.pi/2)
     
     rob.set_pose(mytcp,a,v,wait = True, command = 'movej')
     print("current orientation is: ", rob.get_orientation())
 
+    #with open('gripperScripts//closeg.script', 'r') as script:
+    #    rob.send_program(script.read())
+    #    time.sleep(3)
 
 def testInput():
     pose_list = []
@@ -238,14 +241,14 @@ def testGripperTCP():
     rob.set_pose(mytcp,a,v,wait = True, command = 'movej')
 
 def CalcCam2ToolMatrix():
-    Cam2Base = np.array([[-1, 0, 0,-0.750],
-                              [ 0, 1, 0,-0.750],
-                              [ 0, 0,-1, 0.131],
-                              [ 0, 0, 0, 1.000]])
-    Gripper2Base = np.array([[-0.99614576,  0.0281356 , -0.08307836, -0.69665],
-                                  [ 0.02663937,  0.99946331,  0.01906395, -0.71217],
-                                  [ 0.08357015,  0.01677732, -0.99636065,  0],
-                                  [ 0,           0,           0,           1      ]])
+    Cam2Base = np.array([[ 0, 1, 0,-0.50],
+                         [ 1, 0, 0,-0.50],
+                         [ 0, 0,-1, 0.131],
+                         [ 0, 0, 0, 1.000]])
+    Gripper2Base = np.array([[-0.99988494, -0.01234059,  0.00882146, -0.42776],
+                             [-0.01228032,  0.9999011 ,  0.00685469, -0.46564],
+                             [-0.00890518,  0.00674557, -0.9999376,   0      ],
+                             [ 0,           0,           0,           1      ]])
     gripper2cam0 = np.dot(np.linalg.inv(Cam2Base),     Gripper2Base)
     gripper2cam1 = np.dot(np.linalg.inv(Gripper2Base), Cam2Base    ) 
     gripper2cam2 = np.dot(Gripper2Base, np.linalg.inv(Cam2Base)    ) #This one should be the right one
@@ -337,15 +340,16 @@ def move2start():
 #MoveBack()
 #whileTest()
 #goFreedrive()
-#testRot()
+testRot()
 #testInput()
 #testMovements()
 #increasePickle()
 #testGripperTCP()
 #print(rob.getj())
 #CalcCam2ToolMatrix()
-testRotation()
+#testRotation()
 #move2cam()
 #move2start()
 #print(rob.getj())
+#rob.back(-0.1)
 rob.stop()
