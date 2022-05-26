@@ -40,7 +40,7 @@ n=np.array([])
 
 
 
-criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 3000000, 0.0000000000001)
 # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
 objp = np.zeros((7*9,3), np.float32)
 objp[:,:2] = np.mgrid[0:7,0:9].T.reshape(-1,2)*0.0225
@@ -49,11 +49,11 @@ objpoints = [] # 3d point in real world space
 imgpoints = [] # 2d points in image plane.
 
 import pickle
-pickle_file = "poseList.pickle" ### Write path for the poseList.pickle file ###
+pickle_file = "C:\\data_for_learning\\poseList.pickle" ### Write path for the poseList.pickle file ###
 with open(pickle_file, 'rb') as f:
     data = pickle.load(f)
 i=0
-while (i<30):
+while (i<len(data)):
     if i !=100:
         rob.movej(data[i],a,v)
         time.sleep(1)
@@ -75,7 +75,7 @@ while (i<30):
 ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
 
 
-np.save("Calibration__Data\\intrinicmat1280x720.npy",mtx)
+np.save("Calibration__Data\\intrinicmat640,480.npy",mtx)
 np.save("Calibration__Data\\dist.npy",dist)
 
 print(ret)

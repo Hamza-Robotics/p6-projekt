@@ -206,7 +206,7 @@ def testMovements():
         i+=1
 
 def increasePickle():
-    pickle_file = "poseList.pickle" ### Write path for the full_shape_val_data.pkl file ###
+    pickle_file = "C:\\data_for_learning\\poseList.pickle" ### Write path for the full_shape_val_data.pkl file ###
     with open(pickle_file, 'rb') as f:
         data = pickle.load(f)
     for i in range(10):
@@ -340,10 +340,10 @@ def move2start():
 #MoveBack()
 #whileTest()
 #goFreedrive()
-testRot()
+#testRot()
 #testInput()
 #testMovements()
-#increasePickle()
+increasePickle()
 #testGripperTCP()
 #print(rob.getj())
 #CalcCam2ToolMatrix()

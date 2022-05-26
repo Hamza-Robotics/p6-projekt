@@ -40,7 +40,7 @@ ori = rob.get_orientation()
 with open("CameraSetup.json") as cf:
     rs_cfg = o3d.t.io.RealSenseSensorConfig(json.load(cf))
 
-pickle_file = "poseList.pickle" ### Write path for the poseList.pickle file ###
+pickle_file = "C:\\data_for_learning\\poseList.pickle" ### Write path for the poseList.pickle file ###
 with open(pickle_file, 'rb') as f:
     data = pickle.load(f)
 def setup():
@@ -51,23 +51,22 @@ def setup():
     rs.start_capture(True)  # true: start recording with capture 
     #mtx=np.load("RealSenseCameraParmas.npy") 
     #mtx=np.load("RealSenseCameraParams\\RealSenseCameraParmas1280x720.npy")
-    mtx=np.load("Calibration__Data\\intrinicmat1280x720.npy")
+    mtx=np.load("RealSenseCameraParams\\RealSenseCameraParmas1280x720.npy")
 
     return rs,mtx
 rs,mtx=setup()
 
 print(mtx)
 
-def rot_params_rv(rvecs):
-    from math import pi,atan2,asin
-    R = cv2.Rodrigues(rvecs)[0]
-    roll = atan2(-R[2][1], R[2][2])
-    pitch = asin(R[2][0])
-    yaw = atan2(-R[1][0], R[0][0])
-    rot_params= [roll,pitch,yaw]
-    return rot_params
 
 
+
+def draw(img, corners, imgpts):
+    corner = tuple(corners[0].ravel())
+    img = cv2.line(img, corner, tuple(imgpts[0].ravel()), (255,0,0), 5)
+    img = cv2.line(img, corner, tuple(imgpts[1].ravel()), (0,255,0), 5)
+    img = cv2.line(img, corner, tuple(imgpts[2].ravel()), (0,0,255), 5)
+    return img
 def CameraPose(img,mtx):
 #solvepnp from chessboard
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30000000, 0.00000001)
@@ -81,8 +80,8 @@ def CameraPose(img,mtx):
     if ret == True:
         corners2 = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
         # Find the rotation and translation vectors.
-        ret,rvecs, tvecs = cv2.solvePnP(objp, corners2, mtx,Dist,useExtrinsicGuess=False,flags=cv2.SOLVEPNP_ITERATIVE)
-
+        ret,rvecs, tvecs = cv2.solvePnP(objp, corners2, mtx,None,useExtrinsicGuess=False,flags=cv2.SOLVEPNP_ITERATIVE)
+  
         R,_=cv2.Rodrigues(rvecs)
 
         return ret, R, tvecs
@@ -98,7 +97,7 @@ i=0
 l=0
 
 Dist=np.load("Calibration__Data\\dist.npy")
-while (i<(30)):
+while (i<len(data)):
     #if i not in [24,25,26,27]:
     rob.movej(data[i],a,v)
     time.sleep(2)
@@ -123,7 +122,6 @@ while (i<(30)):
         print(i,l)
         print(np.linalg.norm(tvec))
         l=1+l
-        r_inv=np.linalg.inv(rot)
         R_gripper2base.append(rot)
         t_gripper2base.append(trans)
         R_target2cam.append(rvec)

@@ -6,8 +6,8 @@ import numpy as np
 import pickle
 import os
 
-x = np.load('C:\\data_for_learning\\x_values_c.npy')
-y = np.load('C:\\data_for_learning\\y_values_c.npy')
+x = np.load('C:\\data_for_learning\\x_values_c_cups.npy')
+y = np.load('C:\\data_for_learning\\y_values_c_cups.npy')
 
 #[32..features]:
 X=x
@@ -34,7 +34,7 @@ print("starting to learn")
 Reg=Reg.fit(X,Y)
 print("done learning")
 
-pickle_out = open("C:\\data_for_learning\\DebugState.pickle","wb")
+pickle_out = open("C:\\data_for_learning\\RF_with_cups.pickle","wb")
 pickle.dump(Reg, pickle_out)
 pickle_out.close()
 
@@ -43,3 +43,5 @@ pickle_out.close()
 os.system('Murdar.mp3')
 
 print("done")
+
+

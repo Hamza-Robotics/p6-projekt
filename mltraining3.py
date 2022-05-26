@@ -10,7 +10,7 @@ with open(pickle_file, 'rb') as f:
 
 objectlist=[]
 for i in range(len(data)):
-    if data[i]['semantic class'] == 'Knife' or data[i]['semantic class'] == 'Bottle':
+    if data[i]['semantic class'] == 'Knife' or data[i]['semantic class'] == 'Bottle' or data[i]['semantic class'] == 'Mug':
         objectlist.append(data[i])
 
 
@@ -50,10 +50,11 @@ for i in range(len(objectlist)):
     m=0
     for j in (objectlist[i]['partial']):
         if (str(j) in ["view_0","view_1"]):
-            if True:
+            if True :
                 print(i/(len(objectlist)))
                 Aff_v1=objectlist[i]['partial'][j]['label']['grasp']
                 xyz=np.asarray(objectlist[i]['partial'][j]['coordinate'])  
+          
                 from scipy.io import savemat
                 mdic={"pointcloud":xyz}
                 savemat("matlab_matrix.mat", mdic)  
@@ -63,7 +64,7 @@ for i in range(len(objectlist)):
                 np_colors=(np.concatenate((Aff_v1,np_colors,np_colors),axis=1))
                 pcd.colors=o3d.utility.Vector3dVector(np_colors)
                 pcd = pcd.voxel_down_sample(voxel_size=0.0001)
-
+                o3d.visualization.draw_geometries([pcd])
 
 
                 #Non Normalized distance: 
@@ -75,7 +76,7 @@ for i in range(len(objectlist)):
 
                 #Fast Features
                 pcd.estimate_normals(o3d.geometry.KDTreeSearchParamRadius(radius=0.1))
-                #o3d.visualization.draw_geometries([pcd], point_show_normal=True)
+                #o3d.visualization.draw_geometries([pcd])
                 fph=o3d.pipelines.registration.compute_fpfh_feature(pcd, o3d.geometry.KDTreeSearchParamRadius(radius=0.2))
                 fph = np.array(np.asarray(fph.data)).T
                 fph=np.append(fph,L,axis=1)
@@ -99,5 +100,5 @@ y=np.expand_dims(np.squeeze(np.asarray(y)),axis=1)
 
 print("x: ",np.shape(x)," y: ",np.shape(y))
 
-np.save('C:\\data_for_learning\\x_values_c.npy', x)
-np.save('C:\\data_for_learning\\y_values_c.npy', y)
+np.save('C:\\data_for_learning\\x_values_c_cups.npy', x)
+np.save('C:\\data_for_learning\\y_values_c_cups.npy', y)
